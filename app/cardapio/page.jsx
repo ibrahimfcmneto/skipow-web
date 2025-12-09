@@ -1,3 +1,4 @@
+// app/cardapio/page.jsx
 "use client";
 
 import { useState } from "react";
@@ -35,7 +36,8 @@ export default function CardapioPage() {
       const carrinhoAtual =
         JSON.parse(localStorage.getItem("skipow_carrinho") || "[]");
 
-      carrinhoAtual.push(item);
+      // Adiciona o novo item ao carrinho.
+      carrinhoAtual.push(item); 
       localStorage.setItem(
         "skipow_carrinho",
         JSON.stringify(carrinhoAtual)
@@ -61,7 +63,13 @@ export default function CardapioPage() {
     setQuantidade((q) => Math.max(1, q + delta));
   }
 
+  // Preço total formatado
   const total = produtoSelecionado ? produtoSelecionado.preco * quantidade : 0;
+  const totalFormatado = total.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
 
   return (
     <main className="min-h-screen bg-white flex justify-center">
@@ -77,16 +85,17 @@ export default function CardapioPage() {
             height={36}
           />
 
-          <div className="flex items-center gap-3">
-            {/* botão minhas fichas */}
-            <button
-              onClick={() => router.push("/fichas")}
-              className="hidden sm:inline-block bg-white shadow-md px-5 py-2 rounded-xl text-sm font-semibold text-gray-900"
-            >
-              Minhas Fichas
-            </button>
+          {/* Botão Minhas Fichas Centralizado */}
+          <button
+            onClick={() => router.push("/fichas")}
+            className="bg-white shadow-md px-4 py-2 rounded-xl text-sm font-semibold text-gray-900"
+          >
+            Minhas Fichas
+          </button>
 
-            {/* avatar + menu */}
+
+          <div className="flex items-center gap-3">
+            {/* Avatar + Menu */}
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-full bg-gray-300" />
               <div className="flex flex-col gap-[3px]">
@@ -98,31 +107,34 @@ export default function CardapioPage() {
           </div>
         </header>
 
-        {/* botão “Minhas Fichas” flutuando (igual ao layout) */}
-        <div className="flex justify-center mb-5 sm:hidden">
-          <button
-            onClick={() => router.push("/fichas")}
-            className="bg-white shadow-md px-5 py-2 rounded-xl text-sm font-semibold text-gray-900"
-          >
-            Minhas Fichas
-          </button>
-        </div>
-
-        {/* BUSCA */}
+        {/* BUSCA (LUPA SVG) */}
         <div className="relative mb-6">
           <input
             type="text"
             placeholder="Pesquisar item"
             className="w-full bg-white border border-gray-300 rounded-full py-3 pl-4 pr-11 text-[15px] text-gray-800 placeholder:text-gray-400 outline-none"
           />
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-500">
-            🔍
+          {/* LUPA SVG */}
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-900">
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="w-5 h-5"
+            >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
           </span>
         </div>
 
         {/* ABAS */}
         <div className="flex justify-between mb-8">
-          {["Combos", "Bebidas", "Drinks", "Agua"].map((aba) => {
+          {["Combos", "Bebidas", "Drinks", "Água"].map((aba) => {
             const ativa = aba === abaAtiva;
             return (
               <button
@@ -134,47 +146,57 @@ export default function CardapioPage() {
                     : "bg-[#E5E7EB] text-gray-900"
                 }`}
               >
-                {aba === "Agua" ? "Agua" : aba}
+                {aba}
               </button>
             );
           })}
         </div>
 
-        {/* GRID DE PRODUTOS */}
+        {/* GRID DE PRODUTOS (AJUSTADO PARA ALTURA FIXA) */}
         <div className="grid grid-cols-2 gap-x-5 gap-y-6">
           {PRODUTOS.map((produto) => (
             <button
               key={produto.nome}
               onClick={() => abrirModal(produto)}
-              className="bg-white rounded-[24px] shadow-[0_10px_25px_rgba(0,0,0,0.08)] pt-7 pb-6 px-4 flex flex-col items-center"
+              // MODIFICAÇÃO CHAVE: Altura fixa h-64 (cerca de 256px) para padronizar todos os cards
+              className="bg-white rounded-[24px] shadow-[0_10px_25px_rgba(0,0,0,0.08)] px-4 h-64 flex flex-col items-center justify-between py-6"
             >
-              <Image
-                src={produto.imagem}
-                alt={produto.nome}
-                width={180}
-                height={180}
-                className="w-24 h-24 object-contain mb-4"
-              />
+              {/* Imagem Container - Adicionamos flex-grow-0 e altura fixa para a imagem */}
+              <div className="w-full h-28 flex items-center justify-center flex-grow-0">
+                  <Image
+                      src={produto.imagem}
+                      alt={produto.nome}
+                      width={180}
+                      height={180}
+                      // Forçamos a altura e largura máxima da imagem dentro do seu container
+                      className="object-contain max-h-full max-w-full"
+                  />
+              </div>
 
-              <span className="text-[20px] font-extrabold text-gray-900 leading-tight text-center">
-                {produto.nome}
-              </span>
-              <span className="mt-1 text-[18px] text-gray-900">
-                R$ {produto.preco}
-              </span>
+
+              <div className="flex flex-col items-center flex-grow-0 mt-4">
+                  <span className="text-[20px] font-extrabold text-gray-900 leading-tight text-center">
+                    {produto.nome}
+                  </span>
+                  <span className="mt-1 text-[18px] text-gray-900">
+                    R$ {produto.preco},00
+                  </span>
+              </div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* MODAL (Mantido) */}
       {modalAberto && produtoSelecionado && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center px-5">
-          <div className="bg-white rounded-[32px] w-full max-w-sm pt-7 pb-7 px-6 relative">
+          {/* AJUSTE: Aumentando o rounded para 30px (mais perto do wireframe) */}
+          <div className="bg-white rounded-[30px] w-full max-w-sm pt-7 pb-7 px-6 relative">
             {/* X fechar */}
             <button
               onClick={fecharModal}
-              className="absolute top-5 right-6 text-2xl font-semibold text-gray-900"
+              // AJUSTE: X mais sutil e maior
+              className="absolute top-5 right-6 text-3xl font-light text-gray-900" 
             >
               X
             </button>
@@ -202,11 +224,12 @@ export default function CardapioPage() {
             </p>
 
             {/* QUANTIDADE */}
-            <div className="flex items-center justify-center gap-10 mb-5 mt-2">
+            <div className="flex items-center justify-center gap-8 mb-5 mt-4"> {/* Ajuste no gap e mt */}
               {/* Botão – */}
               <button
                 onClick={() => adicionarQuantidade(-1)}
-                className="w-12 h-12 border-2 border-black rounded-md flex items-center justify-center text-3xl font-bold text-black"
+                // AJUSTE: Aumentando o arredondamento (rounded-xl) e borda mais escura
+                className="w-12 h-12 border-2 border-gray-900 rounded-xl flex items-center justify-center text-3xl font-bold text-black"
               >
                 –
               </button>
@@ -219,7 +242,8 @@ export default function CardapioPage() {
               {/* Botão + */}
               <button
                 onClick={() => adicionarQuantidade(1)}
-                className="w-12 h-12 border-2 border-black rounded-md flex items-center justify-center text-3xl font-bold text-black"
+                // AJUSTE: Aumentando o arredondamento (rounded-xl) e borda mais escura
+                className="w-12 h-12 border-2 border-gray-900 rounded-xl flex items-center justify-center text-3xl font-bold text-black"
               >
                 +
               </button>
@@ -230,14 +254,16 @@ export default function CardapioPage() {
             <p className="text-center text-[18px] text-gray-700 mb-1">
               Total
             </p>
-            <p className="text-center text-[32px] font-extrabold text-[#40BB43] mb-6">
-              R$ {total}
+            {/* AJUSTE: Cor do total para VERDE (RGB 64, 187, 67) e tamanho da fonte */}
+            <p className="text-center text-[38px] font-extrabold text-[#40BB43] mb-6">
+              R$ {totalFormatado}
             </p>
 
             {/* botão adicionar */}
             <button
               onClick={salvarCarrinhoENavegar}
-              className="w-full bg-[#40BB43] text-white font-semibold text-[18px] py-3 rounded-xl"
+              // AJUSTE: Cor e arredondamento (rounded-2xl) para se assemelhar ao wireframe
+              className="w-full bg-[#40BB43] text-white font-semibold text-[18px] py-4 rounded-2xl" 
             >
               Adicionar ao carrinho
             </button>

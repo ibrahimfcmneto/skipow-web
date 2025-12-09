@@ -1,16 +1,21 @@
+// app/layout.tsx
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+// Removendo Geist e Geist_Mono, adicionando Poppins
+import { Poppins } from "next/font/google"; 
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// 1. Definição da fonte Poppins com os pesos comuns
+const poppins = Poppins({
+  variable: "--font-poppins-sans",
+  weight: ['400', '600', '700', '800'], // Pesos comuns usados no projeto (normal, semibold, bold, extrabold)
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// A Geist Mono é mantida se precisar dela, senão pode ser removida
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+// });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -24,8 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      {/* Aplicamos a variável da Poppins na tag <body> */}
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${poppins.variable} antialiased`} 
       >
         {children}
       </body>

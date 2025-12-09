@@ -42,7 +42,7 @@ export default function FichasPage() {
           <div className="w-11 h-11" />
         </header>
 
-        <p className="text-center text-[15px] text-gray-700 mb-4">
+        <p className="text-center text-[20px] text-gray-700 mb-4">
           “Menos fila.{" "}
           <span className="text-[#40BB43] font-semibold">Mais festa.</span>”
         </p>
