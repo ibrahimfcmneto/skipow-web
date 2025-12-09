@@ -6,8 +6,8 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [nome, setNome] = useState("Jiara Martins");
-  const [senha, setSenha] = useState("******");
+  const [nome, setNome] = useState("");
+  const [senha, setSenha] = useState("");
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -50,6 +50,7 @@ export default function LoginPage() {
             </label>
             <input
               type="text"
+              placeholder="Digite seu nome"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               className="w-full rounded-[18px] bg-[#E5E7EB] px-4 py-3 text-gray-800 placeholder:text-gray-400 outline-none border border-transparent focus:border-[#40BB43]"
@@ -63,6 +64,7 @@ export default function LoginPage() {
             </label>
             <input
               type="password"
+              placeholder="Digite sua senha"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               className="w-full rounded-[18px] bg-[#E5E7EB] px-4 py-3 text-gray-800 placeholder:text-gray-400 outline-none border border-transparent focus:border-[#40BB43]"
