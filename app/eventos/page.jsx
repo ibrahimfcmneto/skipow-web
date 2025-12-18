@@ -81,35 +81,61 @@ export default function EventosPage() {
     <main className="min-h-screen bg-white flex justify-center">
       {/* container com largura de celular */}
       <div className="w-full max-w-md px-5 pb-10">
-        
-        {/* HEADER (ADAPTADO AO LAYOUT DO WIREFRAME 5.JPG) */}
-        <header className="flex items-center justify-between pt-6 mb-8"> {/* Ajuste na margem inferior */}
-          {/* logo */}
-          <Image
-            src="/logo-skipow.png"
-            alt="Skipow"
-            width={120}
-            height={36}
-          />
-
-          {/* Botão Minhas Fichas Centralizado/Alinhado */}
-          <button
-            onClick={() => router.push("/fichas")}
-            className="bg-white shadow-md px-4 py-2 rounded-xl text-sm font-semibold text-gray-900"
-          >
-            Minhas Fichas
-          </button>
           
-          <div className="flex items-center gap-3">
-            {/* avatar */}
-            <div className="w-8 h-8 rounded-full bg-gray-300" /> {/* Ajuste no tamanho */}
-            {/* menu hambúrguer */}
-            <div className="flex flex-col gap-[3px]">
-              <span className="w-5 h-[2px] bg-gray-900 rounded" />
-              <span className="w-5 h-[2px] bg-gray-900 rounded" />
-              <span className="w-5 h-[2px] bg-gray-900 rounded" />
+        {/* HEADER */}
+        <header className="pt-6 mb-5 flex items-center justify-between">
+            {/* logo */}
+            <Image
+              src="/logo-skipow.png"
+              alt="Skipow"
+              width={120}
+              height={36}
+            />
+
+            {/* Botão Minhas Fichas Centralizado */}
+            <button
+              onClick={() => router.push("/fichas")}
+              className="bg-white shadow-md px-4 py-2 rounded-xl text-sm font-semibold text-gray-900"
+            >
+              Minhas Fichas
+            </button>
+
+            {/* Avatar e Carrinho (Nesta ordem) */}
+            <div className="flex items-center gap-4">
+              
+              {/* 1. Avatar com Imagem */}
+              <div className="relative w-9 h-9">
+                <Image
+                  src="/avatar.png" // <--- Certifica-te que o nome do arquivo na pasta public é este
+                  alt="Avatar"
+                  fill // Isso faz a imagem preencher todo o espaço da div
+                  className="rounded-full object-cover" // Deixa redondo e recorta a imagem para caber
+                />
+              </div>
+
+              {/* 2. Botão do Carrinho (Agora vem depois) */}
+              <button 
+                onClick={() => router.push("/carrinho")} 
+                className="relative text-gray-900 hover:text-[#40BB43] transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="9" cy="21" r="1"></circle>
+                  <circle cx="20" cy="21" r="1"></circle>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+              </button>
+              
             </div>
-          </div>
         </header>
 
         {/* TÍTULO */}
