@@ -1,3 +1,4 @@
+// app/carrinho/page.jsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -49,7 +50,7 @@ export default function CarrinhoPage() {
     minimumFractionDigits: 2,
   });
 
-  // >>> FUNÇÃO CORRIGIDA <<<
+  // >>> FUNÇÃO DE GERAÇÃO DE FICHAS ÚNICAS <<<
   const handleFinalizarCompra = () => {
     if (typeof window === "undefined") return;
 
@@ -58,13 +59,14 @@ export default function CarrinhoPage() {
       return;
     }
 
-    // 1. Carrega fichas já existentes
+    // 1. Carrega fichas já existentes para saber o último número
     const existentesJSON = localStorage.getItem("skipow_fichas");
     const fichasExistentes = existentesJSON ? JSON.parse(existentesJSON) : [];
 
-    // 2. Descobre qual é o último número usado nos IDs SKP-000X
+    // 2. Descobre o último número usado (ex: se o último foi SKP-0042, o próximo é 43)
     let ultimoNumero = 0;
     fichasExistentes.forEach((ficha) => {
+      // Procura pelo padrão "SKP-" seguido de números
       const match = String(ficha.id).match(/SKP-(\d+)/);
       if (match) {
         const n = parseInt(match[1], 10);
@@ -74,33 +76,50 @@ export default function CarrinhoPage() {
 
     const novasFichas = [];
 
-    // 3. Para cada item do carrinho, gera UMA ficha por unidade comprada
+    // 3. Loop para criar cada ficha individualmente
     itens.forEach((item) => {
-      for (let i = 0; i < item.quantidade; i++) {
-        ultimoNumero += 1; // incrementa 1 a cada ficha
+      
+      // Se for combo, multiplicamos (ex: 1 combo * 3 unidades = 3 fichas)
+      // Se não for, é apenas a quantidade do item (ex: 2 águas = 2 fichas)
+      const multiplicador = item.isCombo ? (item.comboQtd || 1) : 1;
+      const totalFichasDesteItem = item.quantidade * multiplicador;
 
-        const codigoFicha = `SKP-${String(ultimoNumero).padStart(4, "0")}`;
+      // Define os dados CORRETOS para a ficha (Produto Individual)
+      // Se for combo, usa os dados do 'comboItemName', senão usa o nome normal
+      const nomeFinal = item.isCombo ? item.comboItemName : item.nome;
+      const imagemFinal = item.isCombo ? item.comboItemImage : item.imagem;
+
+      // Gera X fichas para este item
+      for (let i = 0; i < totalFichasDesteItem; i++) {
+        ultimoNumero += 1; // Incrementa o contador para o código ser único
+
+        // Formata o código: SKP-0001, SKP-0002...
+        const codigoUnico = `SKP-${String(ultimoNumero).padStart(4, "0")}`;
 
         novasFichas.push({
-          id: codigoFicha, // usado na URL /fichas/[id]
-          codigo: codigoFicha,
-          nome: item.nome, // Cerveja, Red Bull, etc
-          imagem: item.imagem,
+          id: codigoUnico,         // ID único usado na URL
+          codigo: codigoUnico,     // Código visual para o usuário
+          nome: nomeFinal,         // "Corote" (e não "Combo 3 Corotes")
+          imagem: imagemFinal,     // Foto da garrafinha
           evento: "De Férias com a FACECA",
-          status: "disponivel",
+          status: "disponivel",    // Nasce disponível para uso
+          dataCompra: new Date().toISOString()
         });
       }
     });
 
-    // 4. Junta fichas antigas + novas e salva
+    // 4. Salva tudo (Antigas + Novas)
     const todasAsFichas = [...fichasExistentes, ...novasFichas];
     localStorage.setItem("skipow_fichas", JSON.stringify(todasAsFichas));
 
-    // 5. Limpa o carrinho e redireciona
+    // 5. Limpa carrinho e redireciona
     localStorage.removeItem("skipow_carrinho");
     setItens([]);
-    alert("Compra realizada com sucesso! Suas fichas foram geradas.");
-    router.push("/fichas");
+    
+    // Pequeno delay para garantir a gravação dos dados
+    setTimeout(() => {
+        router.push("/fichas");
+    }, 100);
   };
 
   return (
@@ -109,15 +128,13 @@ export default function CarrinhoPage() {
       <div className="w-full max-w-md px-5 pb-10">
         {/* HEADER */}
         <header className="pt-6 mb-4 flex items-center justify-between">
-          {/* botão voltar circular */}
           <button
             onClick={() => router.back()}
-            className="w-11 h-11 rounded-full bg-white shadow-md flex items-center justify-center"
+            className="w-11 h-11 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
           >
-            <span className="text-2xl font-bold text-gray-900">←</span>
+            <span className="text-2xl font-bold text-gray-900 pb-1">←</span>
           </button>
 
-          {/* Título Carrinho (Alinhado à Direita) */}
           <div className="ml-auto flex flex-col items-end text-right">
             <h1 className="text-[26px] font-extrabold text-gray-900 leading-tight">
               Carrinho de Compras
@@ -127,22 +144,29 @@ export default function CarrinhoPage() {
             </p>
           </div>
 
-          {/* espaço à direita só para equilibrar o header */}
-          <div className="w-11 h-11" />
+          <div className="w-11 h-11 hidden sm:block" />
         </header>
 
         {/* SLOGAN */}
-        <p className="text-center text-[22px] text-gray-700 mb-4">
+        <p className="text-center text-[22px] text-gray-700 mb-4 font-medium tracking-tight">
           “Menos fila.{" "}
-          <span className="text-[#40BB43] font-semibold">Mais festa.</span>”
+          <span className="text-[#40BB43] font-extrabold">Mais festa.</span>”
         </p>
 
         {/* LISTA DE ITENS */}
-        <div className="space-y-4 mb-6 mt-3">
+        <div className="space-y-4 mb-6 mt-6">
           {itens.length === 0 && (
-            <p className="text-center text-gray-500 mt-6">
-              Seu carrinho está vazio.
-            </p>
+            <div className="text-center py-10">
+                <p className="text-gray-400 font-medium text-lg">
+                Seu carrinho está vazio.
+                </p>
+                <button 
+                    onClick={() => router.push('/cardapio')}
+                    className="mt-4 text-[#40BB43] font-bold hover:underline"
+                >
+                    Voltar para o cardápio
+                </button>
+            </div>
           )}
 
           {itens.map((item, index) => {
@@ -154,43 +178,43 @@ export default function CarrinhoPage() {
             return (
               <div
                 key={index}
-                className="bg-white rounded-[26px] shadow-[0_15px_35px_rgba(0,0,0,0.08)] px-4 py-4 flex items-center gap-4"
+                className="bg-white rounded-[26px] shadow-[0_8px_25px_rgba(0,0,0,0.06)] px-4 py-5 flex items-center gap-4 border border-gray-50"
               >
                 {/* imagem */}
-                <div className="w-20 h-20 flex items-center justify-center">
+                <div className="w-20 h-20 flex-shrink-0 flex items-center justify-center bg-gray-50 rounded-2xl p-1">
                   <Image
                     src={item.imagem}
                     alt={item.nome}
                     width={80}
                     height={80}
-                    className="object-contain max-h-20"
+                    className="object-contain max-h-16 w-auto"
                   />
                 </div>
 
                 {/* infos */}
-                <div className="flex-1">
-                  <p className="text-[20px] font-extrabold text-gray-900 leading-tight mb-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[18px] font-extrabold text-gray-900 leading-tight mb-1 truncate">
                     {item.nome}
                   </p>
-                  <p className="text-[18px] text-gray-900">
+                  <p className="text-[16px] text-gray-500 font-medium">
                     R$ {subtotalFormatado}
                   </p>
                 </div>
 
                 {/* quantidade */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <button
                     onClick={() => alterarQuantidade(index, -1)}
-                    className="w-9 h-9 border border-gray-900 rounded-md flex items-center justify-center text-lg font-bold text-black"
+                    className="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center text-lg font-bold text-gray-600 hover:bg-gray-100 active:scale-95 transition-all"
                   >
                     –
                   </button>
-                  <span className="min-w-[24px] text-center text-[20px] font-semibold text-black">
+                  <span className="min-w-[20px] text-center text-[18px] font-bold text-gray-900">
                     {item.quantidade}
                   </span>
                   <button
                     onClick={() => alterarQuantidade(index, 1)}
-                    className="w-9 h-9 border border-gray-900 rounded-md flex items-center justify-center text-lg font-bold text-black"
+                    className="w-8 h-8 border border-gray-900 bg-gray-900 rounded-lg flex items-center justify-center text-lg font-bold text-white hover:bg-black active:scale-95 transition-all"
                   >
                     +
                   </button>
@@ -200,33 +224,32 @@ export default function CarrinhoPage() {
           })}
         </div>
 
-        {/* TEXTO SOBRE QR CODE */}
-        <p className="text-center text-[14px] text-gray-600 mb-6 px-2">
-          *Após o pagamento,{" "}
-          <span className="font-semibold">suas fichas</span> serão geradas{" "}
-          <span className="font-semibold">em formato de QR Code.</span> Basta
-          mostrar no bar para retirar suas bebidas.
-        </p>
+        {/* TEXTO E TOTAL */}
+        {itens.length > 0 && (
+            <>
+                <p className="text-center text-[13px] text-gray-400 mb-8 px-4 leading-relaxed">
+                *Após o pagamento, <span className="font-bold text-gray-600">suas fichas</span> serão geradas <span className="font-bold text-gray-600">automaticamente</span>. Basta mostrar o QR Code no bar.
+                </p>
 
-        {/* TOTAL */}
-        <div className="border-t border-gray-200 pt-5 mt-2">
-          <div className="flex items-center justify-between mb-6">
-            <span className="text-[24px] font-extrabold text-gray-900">
-              Total
-            </span>
-            <span className="text-[26px] font-extrabold text-[#40BB43]">
-              R$ {totalFormatado}
-            </span>
-          </div>
+                <div className="border-t border-gray-100 pt-6">
+                <div className="flex items-center justify-between mb-6 px-1">
+                    <span className="text-[22px] font-bold text-gray-400">
+                    Total
+                    </span>
+                    <span className="text-[32px] font-extrabold text-[#40BB43] tracking-tight">
+                    R$ {totalFormatado}
+                    </span>
+                </div>
 
-          {/* BOTÃO FINALIZAR */}
-          <button
-            onClick={handleFinalizarCompra}
-            className="w-full bg-[#40BB43] text-white font-semibold rounded-2xl py-3 text-lg mt-6"
-          >
-            Finalizar compra
-          </button>
-        </div>
+                <button
+                    onClick={handleFinalizarCompra}
+                    className="w-full bg-[#40BB43] hover:bg-[#36a539] text-white font-bold rounded-[20px] py-4 text-[18px] shadow-lg shadow-green-200 transition-transform active:scale-[0.98]"
+                >
+                    Finalizar compra
+                </button>
+                </div>
+            </>
+        )}
       </div>
     </main>
   );
