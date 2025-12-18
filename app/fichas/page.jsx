@@ -1,3 +1,4 @@
+// app/fichas/page.jsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,6 +9,7 @@ import { useRouter } from "next/navigation";
 export default function FichasPage() {
   const router = useRouter();
   const [fichas, setFichas] = useState([]);
+  const [filtroAtivo, setFiltroAtivo] = useState("Disponíveis"); // Estado para as abas
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -18,82 +20,166 @@ export default function FichasPage() {
     }
   }, []);
 
+  // Lógica de filtragem
+  const fichasFiltradas = fichas.filter((ficha) => {
+    if (filtroAtivo === "Todas") return true;
+    if (filtroAtivo === "Disponíveis") return ficha.status === "disponivel";
+    if (filtroAtivo === "Usadas") return ficha.status !== "disponivel";
+    return true;
+  });
+
   return (
     <main className="min-h-screen bg-white flex justify-center">
       <div className="w-full max-w-md px-5 pb-10">
-        {/* HEADER */}
-        <header className="pt-6 mb-4 flex items-center justify-between">
-          <button
-            onClick={() => router.push("/cardapio")}
-            className="w-11 h-11 rounded-full bg-white shadow-md flex items-center justify-center"
-          >
-            <span className="text-2xl font-bold text-gray-900">←</span>
-          </button>
+        
+        {/* HEADER (Novo: Logo esq + Avatar/Carrinho dir) */}
+        <header className="pt-6 mb-8 flex items-center justify-between">
+            {/* logo */}
+            <Image
+              src="/logo-skipow.png"
+              alt="Skipow"
+              width={120}
+              height={36}
+            />
 
-          <div className="flex-1 flex flex-col items-center">
-            <h1 className="text-[26px] font-extrabold text-gray-900 leading-tight">
-              Fichas disponíveis
-            </h1>
-            <p className="text-xs text-gray-500 mt-1">
-              Total de fichas: {fichas.length}
-            </p>
-          </div>
+            {/* Avatar e Carrinho */}
+            <div className="flex items-center gap-4">
+              
+              {/* 1. Avatar */}
+              <div className="relative w-9 h-9">
+                <Image
+                  src="/avatar.png" 
+                  alt="Avatar"
+                  fill 
+                  className="rounded-full object-cover" 
+                />
+              </div>
 
-          <div className="w-11 h-11" />
+              {/* 2. Botão do Carrinho */}
+              <button 
+                onClick={() => router.push("/carrinho")} 
+                className="relative text-gray-900 hover:text-[#40BB43] transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="9" cy="21" r="1"></circle>
+                  <circle cx="20" cy="21" r="1"></circle>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+              </button>
+            </div>
         </header>
 
-        <p className="text-center text-[20px] text-gray-700 mb-4">
+        {/* TÍTULO E SUBTÍTULO*/}
+        <div className="mb-6 text-right">
+          <h1 className="text-[32px] leading-tight font-extrabold text-gray-900">
+            Fichas disponíveis
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Total de fichas: {fichas.length}
+          </p>
+        </div>
+
+        {/* SLOGAN */}
+        <p className="text-center text-[22px] text-gray-700 mb-4">
           “Menos fila.{" "}
           <span className="text-[#40BB43] font-semibold">Mais festa.</span>”
         </p>
 
+        {/* ABAS DE FILTRO*/}
+        <div className="flex bg-gray-100 p-1 rounded-xl mb-6 relative">
+          {["Disponíveis", "Usadas", "Todas"].map((aba) => {
+            const ativo = aba === filtroAtivo;
+            return (
+              <button
+                key={aba}
+                onClick={() => setFiltroAtivo(aba)}
+                className={`
+                  flex-1 py-2 text-[14px] font-semibold rounded-lg capitalize
+                  transition-all duration-300 ease-in-out
+                  ${
+                    ativo
+                      ? "bg-white text-gray-900 shadow-[0_2px_4px_rgba(0,0,0,0.08)] transform scale-[1.02]" // Efeito "Cartão Flutuante"
+                      : "text-gray-500 hover:text-gray-700 bg-transparent" // Efeito "Inativo"
+                  }
+                `}
+              >
+                {aba}
+              </button>
+            );
+          })}
+        </div>
+
         {/* LISTA DE FICHAS */}
-        <div className="space-y-4 mt-2">
-          {fichas.length === 0 && (
-            <p className="text-center text-gray-500 mt-6">
-              Você ainda não possui fichas.
-            </p>
+        <div className="space-y-4">
+          {fichasFiltradas.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">
+                Nenhuma ficha encontrada nesta categoria.
+              </p>
+              {filtroAtivo === "Disponíveis" && (
+                 <button 
+                   onClick={() => router.push('/cardapio')}
+                   className="mt-4 text-[#40BB43] font-bold underline"
+                 >
+                   Comprar fichas
+                 </button>
+              )}
+            </div>
           )}
 
-          {fichas.map((ficha) => (
+          {fichasFiltradas.map((ficha) => (
             <Link
               key={ficha.id}
               href={`/fichas/${ficha.id}`}
-              className="block bg-white rounded-[26px] shadow-[0_15px_35px_rgba(0,0,0,0.08)] px-4 py-3 flex items-center gap-4"
+              className="block bg-white rounded-[26px] shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 transition-transform duration-300 hover:scale-[1.02]"
             >
               {/* imagem da bebida */}
-              <div className="w-16 h-16 flex items-center justify-center">
+              <div className="w-16 h-16 flex items-center justify-center bg-gray-50 rounded-2xl">
                 {ficha.imagem && (
                   <Image
                     src={ficha.imagem}
                     alt={ficha.nome}
-                    width={64}
-                    height={64}
-                    className="object-contain max-h-16"
+                    width={60}
+                    height={60}
+                    className="object-contain max-h-14"
                   />
                 )}
               </div>
 
-              <div className="flex-1">
-                <p className="text-[18px] font-extrabold text-gray-900">
+              <div className="flex-1 min-w-0">
+                <p className="text-[18px] font-extrabold text-gray-900 truncate">
                   {ficha.nome}
                 </p>
-                <p className="text-[12px] text-gray-600 truncate">
+                <p className="text-[11px] text-gray-500 truncate mt-0.5">
                   Válido para: {ficha.evento}
+                </p>
+                <p className="text-[12px] text-gray-400 mt-1">
+                  Toque para ver o QR code
                 </p>
               </div>
 
-              <div className="flex flex-col items-end gap-1">
+              <div className="flex flex-col items-end justify-between h-full gap-2">
+                 {/* Status Colorido */}
                 <span
-                  className={`text-[13px] font-semibold ${
+                  className={`text-[11px] font-bold px-2 py-1 rounded-full ${
                     ficha.status === "disponivel"
-                      ? "text-[#40BB43]"
-                      : "text-red-500"
+                      ? "bg-green-100 text-[#40BB43]"
+                      : "bg-red-100 text-red-500"
                   }`}
                 >
                   {ficha.status === "disponivel" ? "Disponível" : "Usada"}
                 </span>
-                <span className="text-xl">&gt;</span>
+                <span className="text-gray-300 text-xl font-bold">&gt;</span>
               </div>
             </Link>
           ))}
