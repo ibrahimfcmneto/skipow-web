@@ -202,12 +202,12 @@ export default function CardapioPage() {
                     key={aba}
                     onClick={() => setAbaAtiva(aba)}
                     className={`
-                    px-5 py-3 rounded-[10px] text-[15px] font-bold tracking-wide
+                    px-5 py-3 text-[15px] font-bold tracking-wide
                     transition-all duration-300 ease-spring flex-shrink-0
                     active:scale-95
                     ${
                         ativa
-                        ? "bg-black text-white shadow-[0_8px_20px_rgba(0,0,0,0.15)] transform scale-[1.02]"
+                        ? "bg-black text-white rounded-[10px] shadow-[0_8px_20px_rgba(0,0,0,0.15)] transform scale-[1.02]"
                         : "bg-[#E5E7EB] text-gray-900 hover:bg-[#d1d5db]"
                     }
                     `}
