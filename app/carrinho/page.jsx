@@ -117,11 +117,12 @@ export default function CarrinhoPage() {
             <span className="text-2xl font-bold text-gray-900">←</span>
           </button>
 
-          <div className="flex-1 flex flex-col items-center">
+          {/* Título Carrinho (Alinhado à Direita) */}
+          <div className="ml-auto flex flex-col items-end text-right">
             <h1 className="text-[26px] font-extrabold text-gray-900 leading-tight">
               Carrinho de Compras
             </h1>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 mt-1 font-medium">
               Total de itens: {itens.reduce((acc, i) => acc + i.quantidade, 0)}
             </p>
           </div>

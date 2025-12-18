@@ -34,13 +34,17 @@ export default function FichasPage() {
         
         {/* HEADER (Novo: Logo esq + Avatar/Carrinho dir) */}
         <header className="pt-6 mb-8 flex items-center justify-between">
-            {/* logo */}
-            <Image
-              src="/logo-skipow.png"
-              alt="Skipow"
-              width={120}
-              height={36}
-            />
+            {/* logo (Agora clicável, levando ao cardápio) */}
+            <Link href="/cardapio">
+              <Image
+                src="/logo-skipow.png"
+                alt="Skipow"
+                width={120}
+                height={36}
+                // Adicionei 'cursor-pointer' para aparecer a "mãozinha" ao passar o mouse
+                className="cursor-pointer" 
+              />
+            </Link>
 
             {/* Avatar e Carrinho */}
             <div className="flex items-center gap-4">
