@@ -13,8 +13,9 @@ const poppins = Poppins({
   variable: '--font-poppins',
 });
 
-// Componente de Card de Recurso (Micro)
-const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
+// Componente de Card de Recurso (Micro) - CORRIGIDO PARA TYPESCRIPT
+// Adicionei ": any" aqui para corrigir o erro de build
+const FeatureCard = ({ icon: Icon, title, desc, delay }: any) => (
   <motion.div 
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
