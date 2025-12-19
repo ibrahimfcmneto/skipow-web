@@ -1,164 +1,152 @@
+// app/login/page.jsx
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, Suspense } from "react";
+import { Poppins } from 'next/font/google';
 
-export default function LoginPage() {
+// Fonte oficial
+const poppins = Poppins({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+});
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Lógica de Redirecionamento: Se vier do carrinho, vai para /pagamento
+  const callbackUrl = searchParams.get("callbackUrl") || "/eventos";
+
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  // Estado que controla se a senha está visível ou não
   const [showPassword, setShowPassword] = useState(false);
 
   function handleSubmit(e) {
     e.preventDefault();
-    router.push("/eventos");
+    
+    // Simula login e salva sessão
+    localStorage.setItem("skipow_user_data", JSON.stringify({ nome: "Cliente Logado", logado: true }));
+    
+    // Redireciona para o fluxo correto (Pagamento ou Eventos)
+    router.push(callbackUrl);
   }
 
   return (
-    <main className="min-h-screen flex flex-col bg-white relative overflow-hidden font-sans">
+    <div className="w-full max-w-md px-6 py-10 flex flex-col z-10">
       
-      {/* Conteúdo principal */}
-      <div className="flex-1 flex flex-col items-center px-6 pt-16 z-10 w-full max-w-md mx-auto">
+      {/* LOGO */}
+      <div className="flex justify-center mb-8">
+        <Image 
+          src="/logo-skipow.png" 
+          alt="Skipow" 
+          width={140} 
+          height={42} 
+          className="object-contain" 
+          priority
+        />
+      </div>
+
+      {/* TÍTULO */}
+      <div className="text-center mb-8">
+        <h1 className="text-[28px] font-extrabold text-gray-900">Bem-vindo de volta!</h1>
+        <p className="text-gray-500 mt-1 text-sm">
+          {callbackUrl.includes('pagamento') 
+            ? "Faça login para finalizar sua compra." 
+            : "Acesse sua conta para continuar."}
+        </p>
+      </div>
+
+      {/* FORMULÁRIO (Estilo idêntico ao Cadastro) */}
+      <form onSubmit={handleSubmit} className="space-y-5">
         
-        {/* Logo */}
-        <div className="mb-14 relative w-48 h-12">
-            <Image
-            src="/logo-skipow.png"
-            alt="Skipow"
-            fill
-            className="object-contain"
-            priority
+        {/* EMAIL */}
+        <div>
+          <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Email</label>
+          <div className="relative">
+            <input 
+              type="email" 
+              required
+              placeholder="Digite seu email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-[#F3F4F6] rounded-xl py-4 px-5 text-gray-700 font-medium placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#40BB43]/50 focus:bg-white transition-all"
             />
-        </div>
-
-        {/* Título + subtítulo */}
-        <div className="w-full text-center mb-10">
-          <h1 className="text-[42px] leading-none font-bold text-gray-900 mb-3 tracking-tight">
-            Login
-          </h1>
-          <p className="text-[15px] text-gray-500 font-normal">
-            Faça login para continuar.
-          </p>
-        </div>
-
-        {/* Formulário */}
-        <form onSubmit={handleSubmit} className="w-full space-y-6">
-          
-          {/* Email */}
-          <div>
-            <label className="block text-[11px] font-bold text-gray-400 mb-2 tracking-[0.15em] uppercase">
-              Email
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                {/* Ícone Envelope */}
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
-                  <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-                </svg>
-              </div>
-              <input
-                type="email"
-                placeholder="Digite seu email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-[8px] bg-[#E0E0E0] pl-12 pr-4 py-4 text-gray-800 placeholder:text-gray-500 outline-none border-none text-[15px]"
-              />
-            </div>
+            {/* Ícone opcional (se quiser igual ao wireframe antigo, pode remover ou manter clean como o cadastro novo) */}
           </div>
-
-          {/* Senha */}
-          <div>
-            <label className="block text-[11px] font-bold text-gray-400 mb-2 tracking-[0.15em] uppercase">
-              Senha
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                {/* Ícone Cadeado */}
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
-                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-              </div>
-              <input
-                // Alterna entre "text" (visível) e "password" (escondido)
-                type={showPassword ? "text" : "password"}
-                placeholder="******"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                className="w-full rounded-[8px] bg-[#E0E0E0] pl-12 pr-12 py-4 text-gray-800 placeholder:text-gray-500 outline-none border-none text-[15px]"
-              />
-              
-              {/* Botão para alternar visibilidade da senha */}
-              <button
-                type="button"
-                // Ao clicar, inverte o estado de showPassword
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer"
-              >
-                {showPassword ? (
-                  // Se a senha está VISÍVEL, mostra o ícone de OLHO FECHADO (para esconder)
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
-                    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
-                    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
-                    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7c.44 0 .87-.02 1.28-.05"></path>
-                    <line x1="2" x2="22" y1="2" y2="22"></line>
-                  </svg>
-                ) : (
-                  // Se a senha está ESCONDIDA, mostra o ícone de OLHO ABERTO (para ver)
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
-                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Botão Entrar */}
-          <button
-            type="submit"
-            className="w-full bg-[#40BB43] hover:bg-[#36a339] text-white font-bold py-4 rounded-[8px] mt-8 text-[16px] transition-colors shadow-sm"
-          >
-            Entrar
-          </button>
-        </form>
-      </div>
-
-      {/* Rodapé Curvo Verde */}
-      <div className="relative w-full h-32 mt-auto">
-         {/* SVG da Curva */}
-        <div className="absolute bottom-0 left-0 w-full h-full overflow-hidden leading-[0]">
-            <svg 
-                className="relative block w-[calc(138%+1.3px)] h-[130px] left-[-19%]" 
-                data-name="Layer 1" 
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 1200 120" 
-                preserveAspectRatio="none"
-            >
-                <path 
-                    d="M600,112.77C268.63,112.77,0,65.52,0,7.23V120H1200V7.23C1200,65.52,931.37,112.77,600,112.77Z" 
-                    className="fill-[#40BB43]"
-                ></path>
-            </svg>
         </div>
-        
-        {/* Conteúdo dentro da parte verde */}
-        <div className="absolute bottom-0 w-full text-center pb-4 z-20 flex flex-col items-center justify-center h-full pt-10">
-            <button 
-                type="button" 
-                className="text-[15px] text-black font-medium hover:underline mb-8"
-            >
-                Esqueci minha senha
-            </button>
+
+        {/* SENHA */}
+        <div>
+          <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Senha</label>
+          <div className="relative">
+            <input 
+              type={showPassword ? "text" : "password"}
+              required
+              placeholder="******" 
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              className="w-full bg-[#F3F4F6] rounded-xl py-4 px-5 pr-12 text-gray-700 font-medium placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#40BB43]/50 focus:bg-white transition-all"
+            />
             
-            <p className="text-[10px] text-black/40 absolute bottom-2">
-                © Skipow — Plataforma de consumo para eventos
-            </p>
+            {/* Ícone de Olho (Visualizar Senha) */}
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              {showPassword ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7c.44 0 .87-.02 1.28-.05"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              )}
+            </button>
+          </div>
+          
+          <div className="text-right mt-2">
+            <span className="text-xs text-gray-400 hover:text-[#40BB43] cursor-pointer font-bold transition-colors">Esqueceu a senha?</span>
+          </div>
         </div>
+
+        {/* BOTÃO ENTRAR */}
+        <div className="pt-2">
+          <button 
+              type="submit"
+              className="w-full bg-[#40BB43] hover:bg-[#36a539] text-white font-bold rounded-[20px] py-4 text-[18px] shadow-lg shadow-green-200 transition-transform active:scale-[0.98]"
+          >
+              {callbackUrl.includes('pagamento') ? "Entrar e Pagar" : "Entrar"}
+          </button>
+        </div>
+
+        <p className="text-center text-sm text-gray-500 mt-6">
+          Não tem conta? <span className="text-[#40BB43] font-bold cursor-pointer hover:underline" onClick={() => router.push('/cadastro')}>Cadastre-se</span>
+        </p>
+
+      </form>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <main className={`min-h-screen bg-white flex justify-center relative overflow-hidden ${poppins.className}`}>
+      
+      {/* O Suspense é necessário no Next.js para usar useSearchParams */}
+      <Suspense fallback={<div className="flex items-center justify-center h-screen text-[#40BB43]">Carregando...</div>}>
+        <LoginForm />
+      </Suspense>
+
+      {/* RODAPÉ ONDA VERDE (Igual ao Cadastro) */}
+      <div className="fixed bottom-0 left-0 w-full h-24 overflow-hidden pointer-events-none z-0">
+          <svg className="w-full h-full" viewBox="0 0 500 150" preserveAspectRatio="none">
+              <path d="M0.00,49.98 Q250.00,150.00 500.00,49.98 L500.00,150.00 L0.00,150.00 Z" className="fill-[#40BB43]"></path>
+          </svg>
       </div>
+      
+      {/* Gradiente sutil no fundo para unir com a onda */}
+      <div className="fixed bottom-0 left-0 w-full h-32 pointer-events-none -z-10 bg-gradient-to-t from-green-50/50 to-transparent"></div>
+
     </main>
   );
 }

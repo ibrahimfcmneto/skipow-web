@@ -4,6 +4,13 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+// Importando a fonte para garantir a estética exata da marca
+import { Poppins } from 'next/font/google';
+
+const poppins = Poppins({
+  weight: ['400', '500', '600', '700', '800'],
+  subsets: ['latin'],
+});
 
 export default function CarrinhoPage() {
   const router = useRouter();
@@ -50,7 +57,8 @@ export default function CarrinhoPage() {
     minimumFractionDigits: 2,
   });
 
-  // >>> FUNÇÃO DE GERAÇÃO DE FICHAS ÚNICAS <<<
+  // >>> AJUSTE: MUDANÇA DE FLUXO <<<
+  // O botão agora leva para o Cadastro, em vez de gerar fichas direto.
   const handleFinalizarCompra = () => {
     if (typeof window === "undefined") return;
 
@@ -59,73 +67,15 @@ export default function CarrinhoPage() {
       return;
     }
 
-    // 1. Carrega fichas já existentes para saber o último número
-    const existentesJSON = localStorage.getItem("skipow_fichas");
-    const fichasExistentes = existentesJSON ? JSON.parse(existentesJSON) : [];
-
-    // 2. Descobre o último número usado (ex: se o último foi SKP-0042, o próximo é 43)
-    let ultimoNumero = 0;
-    fichasExistentes.forEach((ficha) => {
-      // Procura pelo padrão "SKP-" seguido de números
-      const match = String(ficha.id).match(/SKP-(\d+)/);
-      if (match) {
-        const n = parseInt(match[1], 10);
-        if (n > ultimoNumero) ultimoNumero = n;
-      }
-    });
-
-    const novasFichas = [];
-
-    // 3. Loop para criar cada ficha individualmente
-    itens.forEach((item) => {
-      
-      // Se for combo, multiplicamos (ex: 1 combo * 3 unidades = 3 fichas)
-      // Se não for, é apenas a quantidade do item (ex: 2 águas = 2 fichas)
-      const multiplicador = item.isCombo ? (item.comboQtd || 1) : 1;
-      const totalFichasDesteItem = item.quantidade * multiplicador;
-
-      // Define os dados CORRETOS para a ficha (Produto Individual)
-      // Se for combo, usa os dados do 'comboItemName', senão usa o nome normal
-      const nomeFinal = item.isCombo ? item.comboItemName : item.nome;
-      const imagemFinal = item.isCombo ? item.comboItemImage : item.imagem;
-
-      // Gera X fichas para este item
-      for (let i = 0; i < totalFichasDesteItem; i++) {
-        ultimoNumero += 1; // Incrementa o contador para o código ser único
-
-        // Formata o código: SKP-0001, SKP-0002...
-        const codigoUnico = `SKP-${String(ultimoNumero).padStart(4, "0")}`;
-
-        novasFichas.push({
-          id: codigoUnico,         // ID único usado na URL
-          codigo: codigoUnico,     // Código visual para o usuário
-          nome: nomeFinal,         // "Corote" (e não "Combo 3 Corotes")
-          imagem: imagemFinal,     // Foto da garrafinha
-          evento: "De Férias com a FACECA",
-          status: "disponivel",    // Nasce disponível para uso
-          dataCompra: new Date().toISOString()
-        });
-      }
-    });
-
-    // 4. Salva tudo (Antigas + Novas)
-    const todasAsFichas = [...fichasExistentes, ...novasFichas];
-    localStorage.setItem("skipow_fichas", JSON.stringify(todasAsFichas));
-
-    // 5. Limpa carrinho e redireciona
-    localStorage.removeItem("skipow_carrinho");
-    setItens([]);
-    
-    // Pequeno delay para garantir a gravação dos dados
-    setTimeout(() => {
-        router.push("/fichas");
-    }, 100);
+    // Redireciona para o cadastro para iniciar o fluxo de checkout
+    router.push("/cadastro");
   };
 
   return (
-    <main className="min-h-screen bg-white flex justify-center">
+    <main className={`min-h-screen bg-white flex justify-center ${poppins.className}`}>
       {/* container tipo celular */}
       <div className="w-full max-w-md px-5 pb-10">
+        
         {/* HEADER */}
         <header className="pt-6 mb-4 flex items-center justify-between">
           <button
@@ -157,15 +107,15 @@ export default function CarrinhoPage() {
         <div className="space-y-4 mb-6 mt-6">
           {itens.length === 0 && (
             <div className="text-center py-10">
-                <p className="text-gray-400 font-medium text-lg">
+              <p className="text-gray-400 font-medium text-lg">
                 Seu carrinho está vazio.
-                </p>
-                <button 
-                    onClick={() => router.push('/cardapio')}
-                    className="mt-4 text-[#40BB43] font-bold hover:underline"
-                >
-                    Voltar para o cardápio
-                </button>
+              </p>
+              <button 
+                onClick={() => router.push('/cardapio')}
+                className="mt-4 text-[#40BB43] font-bold hover:underline"
+              >
+                Voltar para o cardápio
+              </button>
             </div>
           )}
 
@@ -226,29 +176,29 @@ export default function CarrinhoPage() {
 
         {/* TEXTO E TOTAL */}
         {itens.length > 0 && (
-            <>
-                <p className="text-center text-[13px] text-gray-400 mb-8 px-4 leading-relaxed">
-                *Após o pagamento, <span className="font-bold text-gray-600">suas fichas</span> serão geradas <span className="font-bold text-gray-600">automaticamente</span>. Basta mostrar o QR Code no bar.
-                </p>
+          <>
+            <p className="text-center text-[13px] text-gray-400 mb-8 px-4 leading-relaxed">
+              *Após o pagamento, <span className="font-bold text-gray-600">suas fichas</span> serão geradas <span className="font-bold text-gray-600">automaticamente</span>. Basta mostrar o QR Code no bar.
+            </p>
 
-                <div className="border-t border-gray-100 pt-6">
-                <div className="flex items-center justify-between mb-6 px-1">
-                    <span className="text-[22px] font-bold text-gray-400">
-                    Total
-                    </span>
-                    <span className="text-[32px] font-extrabold text-[#40BB43] tracking-tight">
-                    R$ {totalFormatado}
-                    </span>
-                </div>
+            <div className="border-t border-gray-100 pt-6">
+              <div className="flex items-center justify-between mb-6 px-1">
+                <span className="text-[22px] font-bold text-gray-400">
+                  Total
+                </span>
+                <span className="text-[32px] font-extrabold text-[#40BB43] tracking-tight">
+                  R$ {totalFormatado}
+                </span>
+              </div>
 
-                <button
-                    onClick={handleFinalizarCompra}
-                    className="w-full bg-[#40BB43] hover:bg-[#36a539] text-white font-bold rounded-[20px] py-4 text-[18px] shadow-lg shadow-green-200 transition-transform active:scale-[0.98]"
-                >
-                    Finalizar compra
-                </button>
-                </div>
-            </>
+              <button
+                onClick={handleFinalizarCompra}
+                className="w-full bg-[#40BB43] hover:bg-[#36a539] text-white font-bold rounded-[20px] py-4 text-[18px] shadow-lg shadow-green-200 transition-transform active:scale-[0.98]"
+              >
+                Finalizar compra
+              </button>
+            </div>
+          </>
         )}
       </div>
     </main>

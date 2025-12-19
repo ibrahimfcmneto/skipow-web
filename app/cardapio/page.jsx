@@ -13,7 +13,7 @@ const PRODUTOS = [
     preco: 15, 
     imagem: "/combo_3_corotes.png", 
     categorias: ["Promoções"],
-    // Instruções para o sistema (invisíveis para o usuário no carrinho)
+    // Instruções para o sistema
     isCombo: true,
     comboQtd: 3,                 // Vale 3 fichas
     comboItemName: "Corote",     // O nome que vai na ficha
@@ -76,15 +76,13 @@ export default function CardapioPage() {
   function salvarCarrinhoENavegar() {
     if (!produtoSelecionado) return;
 
-    // Criamos o item mantendo o nome "Combo" e quantidade "1" (ou a qte que o user escolheu)
-    // Mas anexamos as propriedades 'isCombo', 'comboQtd', etc. para usar DEPOIS.
     const itemParaAdicionar = {
-      nome: produtoSelecionado.nome,       // Ex: "Combo 3 Corotes"
-      preco: produtoSelecionado.preco,     // Ex: 15 (Preço cheio)
-      quantidade: quantidade,              // Ex: 1 (O cliente escolheu 1 combo)
-      imagem: produtoSelecionado.imagem,   // Imagem do combo
+      nome: produtoSelecionado.nome,
+      preco: produtoSelecionado.preco,
+      quantidade: quantidade,
+      imagem: produtoSelecionado.imagem,
       
-      // DADOS OCULTOS (Para gerar as fichas corretas no checkout)
+      // DADOS OCULTOS
       isCombo: produtoSelecionado.isCombo || false,
       comboQtd: produtoSelecionado.comboQtd || 1,
       comboItemName: produtoSelecionado.comboItemName || "",
@@ -96,7 +94,6 @@ export default function CardapioPage() {
         localStorage.getItem("skipow_carrinho") || "[]"
       );
 
-      // Se já tem esse combo no carrinho, só aumenta a quantidade
       const indexExistente = carrinhoAtual.findIndex((i) => i.nome === itemParaAdicionar.nome);
 
       if (indexExistente >= 0) {
@@ -136,12 +133,15 @@ export default function CardapioPage() {
     <main className="min-h-screen bg-white flex justify-center">
       <div className="w-full max-w-md px-5 pb-10">
         
-        {/* HEADER */}
-        <header className="pt-6 mb-5 flex items-center justify-between">
+        {/* HEADER COM LINHA DIVISÓRIA ADICIONADA */}
+        {/* Adicionei 'border-b border-gray-100 pb-4' para criar a linha */}
+        <header className="pt-6 mb-5 pb-4 border-b-2 border-gray-200 flex items-center justify-between">
           <Image src="/logo-skipow.png" alt="Skipow" width={120} height={36} />
+          
           <button onClick={() => router.push("/fichas")} className="bg-white shadow-md px-4 py-2 rounded-xl text-sm font-semibold text-gray-900 transition-transform active:scale-95">
             Minhas Fichas
           </button>
+          
           <div className="flex items-center gap-4">
             <div onClick={() => router.push("/perfil")} className="relative w-9 h-9 cursor-pointer hover:opacity-80 transition-opacity">
               <Image src="/avatar.png" alt="Avatar" fill className="rounded-full object-cover border border-gray-100" />
