@@ -2,163 +2,240 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Poppins } from 'next/font/google';
-import { motion } from "framer-motion";
-import { ArrowRight, Smartphone, CreditCard, QrCode, UserCog, Martini } from "lucide-react";
+import { Poppins } from "next/font/google";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowRight,
+  Smartphone,
+  QrCode,
+  CreditCard,
+  ShieldCheck,
+  Martini,
+  UserCog,
+} from "lucide-react";
 
-// Configuração da tipografia
 const poppins = Poppins({
-  weight: ['400', '500', '600', '700'],
-  subsets: ['latin'],
-  variable: '--font-poppins',
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-poppins",
 });
 
-// Componente de Card de Recurso (Micro) - CORRIGIDO PARA TYPESCRIPT
-// Adicionei ": any" aqui para corrigir o erro de build
-const FeatureCard = ({ icon: Icon, title, desc, delay }: any) => (
-  <motion.div 
-    initial={{ opacity: 0, y: 20 }}
+type FeatureCardProps = {
+  icon: React.ElementType;
+  title: string;
+  desc: string;
+  delay?: number;
+};
+
+const FeatureCard = ({ icon: Icon, title, desc, delay = 0 }: FeatureCardProps) => (
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, duration: 0.6 }}
-    className="flex flex-col items-center text-center p-4 bg-white rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-100"
+    transition={{ delay, duration: 0.5, ease: "easeOut" }}
+    className="rounded-[24px] bg-white/70 backdrop-blur border border-black/[0.06] shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-4"
   >
-    <div className="w-10 h-10 rounded-2xl bg-[#40BB43]/10 text-[#40BB43] flex items-center justify-center mb-3">
-      <Icon size={20} strokeWidth={2.5} />
+    <div className="flex items-start gap-3">
+      <div className="mt-0.5 h-11 w-11 rounded-[18px] bg-[#40BB43]/10 text-[#40BB43] flex items-center justify-center">
+        <Icon size={20} strokeWidth={2.5} />
+      </div>
+
+      <div className="flex-1">
+        <h3 className="text-[13px] font-semibold text-[#1D1D1F] leading-tight">
+          {title}
+        </h3>
+        <p className="mt-1 text-[12px] text-black/55 leading-snug">{desc}</p>
+      </div>
     </div>
-    <h3 className="text-[13px] font-bold text-gray-900 mb-1 leading-tight">{title}</h3>
-    <p className="text-[11px] text-gray-500 leading-snug">{desc}</p>
+  </motion.div>
+);
+
+const FadeIn = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay, duration: 0.7, ease: "easeOut" }}
+  >
+    {children}
   </motion.div>
 );
 
 export default function LandingPage() {
+  const year = new Date().getFullYear();
+
   return (
-    <div className={`${poppins.className} min-h-screen bg-[#F5F5F7] flex flex-col items-center relative overflow-x-hidden selection:bg-[#40BB43] selection:text-white`}>
-      
-      {/* BACKGROUND PREMIUM (Gradientes Suaves) */}
-      <div className="fixed top-0 left-0 w-full h-[500px] bg-gradient-to-b from-white to-transparent pointer-events-none" />
-      <div className="fixed -top-[20%] -right-[20%] w-[600px] h-[600px] bg-[#40BB43]/5 rounded-full blur-[120px] pointer-events-none" />
-      
-      <main className="w-full max-w-lg px-6 pt-12 pb-10 flex flex-col z-10">
-        
-        {/* 1. HERO SECTION */}
-        <header className="flex flex-col items-center text-center mb-10">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="relative w-40 h-12 mb-8"
-          >
-            <Image 
-                src="/logo-skipow.png" 
-                alt="Skipow" 
-                fill 
-                className="object-contain"
+    <div
+      className={`${poppins.className} min-h-screen bg-[#F5F5F7] text-[#1D1D1F] selection:bg-[#40BB43] selection:text-white`}
+    >
+      {/* Background: clean + premium */}
+      <div className="pointer-events-none fixed inset-0">
+        <div className="absolute top-0 left-0 right-0 h-[520px] bg-gradient-to-b from-white via-white/60 to-transparent" />
+        <div className="absolute -top-[26%] -right-[28%] h-[680px] w-[680px] rounded-full bg-[#40BB43]/7 blur-[120px]" />
+        <div className="absolute -bottom-[26%] -left-[28%] h-[680px] w-[680px] rounded-full bg-black/[0.04] blur-[120px]" />
+      </div>
+
+      <main className="relative mx-auto w-full max-w-lg px-6 pt-10 pb-10">
+        {/* Top brand */}
+        <FadeIn delay={0.05}>
+          <div className="flex items-center justify-center mb-8">
+            <div className="relative h-12 w-40">
+              <Image
+                src="/logo_skipow_oficial_sem_fundo-removebg-preview.png"
+                alt="Skipow"
+                fill
                 priority
-            />
-          </motion.div>
+                className="object-contain"
+              />
+            </div>
+          </div>
+        </FadeIn>
 
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.8 }}
-            className="text-[36px] leading-[1.1] font-bold text-[#1D1D1F] tracking-tight mb-4"
-          >
-            A festa começa <br/>
-            <span className="text-[#40BB43]">quando a fila acaba.</span>
-          </motion.h1>
+        {/* Hero */}
+        <header className="text-center">
+          <FadeIn delay={0.1}>
+            <p className="inline-flex items-center gap-2 rounded-full border border-black/[0.08] bg-white/60 backdrop-blur px-3 py-1 text-[12px] font-semibold text-black/70">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#40BB43] animate-pulse" />
+              Sem fila. Sem estresse. Só festa.
+            </p>
+          </FadeIn>
 
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-[16px] text-gray-500 font-medium leading-relaxed max-w-[280px]"
-          >
-            Peça bebidas pelo celular, pague com Pix e retire no balcão em segundos.
-          </motion.p>
+          <FadeIn delay={0.18}>
+            <h1 className="mt-5 text-[36px] leading-[1.06] tracking-tight font-bold">
+              Compre sua bebida{" "}
+              <span className="text-[#40BB43]">em segundos</span>.
+              <br />
+              Retire no bar com QR Code.
+            </h1>
+          </FadeIn>
+
+          <FadeIn delay={0.26}>
+            <p className="mt-4 text-[16px] leading-relaxed text-black/60 font-medium">
+              Você escolhe, paga no celular e recebe sua ficha digital na hora.
+              É só mostrar no bar e retirar.
+            </p>
+          </FadeIn>
         </header>
 
-        {/* 2. HOW IT WORKS (Grid estilo Apple) */}
-        <section className="grid grid-cols-3 gap-3 mb-10">
-          <FeatureCard 
-            icon={Smartphone} 
-            title="Peça" 
-            desc="Selecione no app" 
-            delay={0.3} 
-          />
-          <FeatureCard 
-            icon={CreditCard} 
-            title="Pague" 
-            desc="Pix ou Cartão" 
-            delay={0.4} 
-          />
-          <FeatureCard 
-            icon={QrCode} 
-            title="Retire" 
-            desc="Mostre o QR Code" 
-            delay={0.5} 
-          />
+        {/* Primary CTA */}
+        <FadeIn delay={0.34}>
+          <div className="mt-8">
+            <Link href="/eventos" className="block">
+              <button
+                className="group relative w-full h-[68px] rounded-[24px] bg-[#111113] hover:bg-black text-white px-7 shadow-[0_22px_46px_-18px_rgba(0,0,0,0.55)] transition-all active:scale-[0.985]"
+                aria-label="Ver eventos e comprar fichas"
+              >
+                <div className="flex h-full items-center justify-between">
+                  <div className="text-left">
+                    <div className="text-[17px] font-semibold leading-tight">
+                      Ver eventos e comprar
+                    </div>
+                    <div className="mt-0.5 text-[12px] text-white/65 font-medium">
+                      Suas fichas ficam salvas no celular
+                    </div>
+                  </div>
+
+                  <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/15 transition-colors">
+                    <ArrowRight size={18} />
+                  </div>
+                </div>
+              </button>
+            </Link>
+
+            <div className="mt-3 flex items-center justify-center gap-2 text-[12px] text-black/45 font-medium">
+              <ShieldCheck size={14} className="text-[#40BB43]" />
+              Pagamento seguro • QR Code único por bebida
+            </div>
+          </div>
+        </FadeIn>
+
+        {/* How it works */}
+        <section className="mt-10">
+          <FadeIn delay={0.42}>
+            <div className="flex items-end justify-between">
+              <h2 className="text-[14px] font-semibold tracking-tight">
+                Como funciona
+              </h2>
+              <span className="text-[12px] text-black/45 font-medium">
+                3 passos
+              </span>
+            </div>
+          </FadeIn>
+
+          <div className="mt-4 grid gap-3">
+            <FeatureCard
+              icon={Smartphone}
+              title="1) Escolha a bebida"
+              desc="Veja o cardápio do evento e adicione ao carrinho."
+              delay={0.48}
+            />
+            <FeatureCard
+              icon={CreditCard}
+              title="2) Pague no celular"
+              desc="Pix ou cartão. Sem precisar baixar aplicativo."
+              delay={0.55}
+            />
+            <FeatureCard
+              icon={QrCode}
+              title="3) Receba o QR e retire no bar"
+              desc="O QR Code é sua ficha digital. Mostre no balcão e pegue a bebida."
+              delay={0.62}
+            />
+          </div>
         </section>
 
-        {/* 3. PRIMARY CTA (Para o Cliente) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="mb-12"
-        >
-          <Link href="/eventos" className="block group">
-            <button className="relative w-full bg-[#1D1D1F] hover:bg-black text-white h-[68px] rounded-[24px] font-semibold text-[18px] flex items-center justify-between px-8 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.3)] transition-all transform active:scale-[0.98]">
-              <span>Quero comprar fichas</span>
-              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                 <ArrowRight size={20} />
+        {/* Trust / credibility (micro, não “IAzão”) */}
+        <section className="mt-10">
+          <FadeIn delay={0.7}>
+            <div className="rounded-[24px] bg-white/70 backdrop-blur border border-black/[0.06] shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-5">
+              <h3 className="text-[14px] font-semibold">Por que dá certo na festa</h3>
+
+              <div className="mt-3 space-y-2 text-[13px] text-black/60 font-medium leading-relaxed">
+                <p>• Você não pega fila de caixa para comprar ficha.</p>
+                <p>• Cada bebida vira um QR Code único (uma ficha digital).</p>
+                <p>• Se a internet do cliente cair, o bartender valida normalmente.</p>
               </div>
-            </button>
-          </Link>
-          <p className="text-center text-[12px] text-gray-400 mt-4 font-medium flex justify-center items-center gap-1">
-             <span className="w-1.5 h-1.5 bg-[#40BB43] rounded-full animate-pulse"></span>
-             Eventos acontecendo agora
-          </p>
-        </motion.div>
 
-        {/* 4. DIVISOR SUTIL */}
-        <div className="w-full h-px bg-gray-200 mb-8" />
+              <div className="mt-4 text-[12px] text-black/45 font-medium">
+                Dica: depois de pagar, deixe a tela de “Minhas fichas” aberta para retirar mais rápido.
+              </div>
+            </div>
+          </FadeIn>
+        </section>
 
-        {/* 5. SECONDARY ACCESS (Profissionais) */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.8 }}
-          className="space-y-4"
-        >
-          <h2 className="text-[12px] font-bold text-gray-400 uppercase tracking-widest text-center mb-4">
-            Acesso Corporativo
-          </h2>
+        {/* Secondary access */}
+        <section className="mt-10">
+          <FadeIn delay={0.78}>
+            <div className="flex items-end justify-between">
+              <h2 className="text-[14px] font-semibold tracking-tight">
+                Acesso para equipe
+              </h2>
+              <span className="text-[12px] text-black/45 font-medium">
+                bartender / organização
+              </span>
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* Bartender */}
-            <Link href="/bartender/login" className="group">
-              <button className="w-full bg-white border border-gray-200 h-14 rounded-[18px] flex items-center justify-center gap-2.5 text-gray-600 font-semibold text-[14px] hover:border-gray-300 hover:shadow-sm transition-all active:scale-[0.98]">
-                <Martini size={18} className="text-gray-400 group-hover:text-[#40BB43] transition-colors" />
-                Sou Bartender
-              </button>
-            </Link>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <Link href="/bartender/login" className="group">
+                <button className="w-full h-14 rounded-[18px] bg-white/70 backdrop-blur border border-black/[0.08] shadow-[0_10px_26px_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 text-[13px] font-semibold text-black/60 hover:text-black transition active:scale-[0.985]">
+                  <Martini size={18} className="text-black/35 group-hover:text-[#40BB43] transition-colors" />
+                  Sou Bartender
+                </button>
+              </Link>
 
-            {/* Organizador */}
-            <Link href="/organizador/login" className="group">
-              <button className="w-full bg-white border border-gray-200 h-14 rounded-[18px] flex items-center justify-center gap-2.5 text-gray-600 font-semibold text-[14px] hover:border-gray-300 hover:shadow-sm transition-all active:scale-[0.98]">
-                <UserCog size={18} className="text-gray-400 group-hover:text-gray-900 transition-colors" />
-                Sou Organizador
-              </button>
-            </Link>
-          </div>
-        </motion.div>
+              <Link href="/organizador/login" className="group">
+                <button className="w-full h-14 rounded-[18px] bg-white/70 backdrop-blur border border-black/[0.08] shadow-[0_10px_26px_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 text-[13px] font-semibold text-black/60 hover:text-black transition active:scale-[0.985]">
+                  <UserCog size={18} className="text-black/35 group-hover:text-black transition-colors" />
+                  Sou Organizador
+                </button>
+              </Link>
+            </div>
+          </FadeIn>
+        </section>
 
+        {/* Footer */}
+        <footer className="mt-10 pb-2 text-center">
+          <p className="text-[11px] text-black/40 font-medium">© {year} Skipow</p>
+        </footer>
       </main>
-
-      {/* FOOTER */}
-      <footer className="w-full py-6 text-center">
-        <p className="text-[11px] text-gray-400 font-medium">© {new Date().getFullYear()} Skipow Inc.</p>
-      </footer>
     </div>
   );
 }
