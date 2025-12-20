@@ -1,7 +1,7 @@
 // app/cardapio/page.jsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -13,11 +13,10 @@ const PRODUTOS = [
     preco: 15, 
     imagem: "/combo_3_corotes.png", 
     categorias: ["Promoções"],
-    // Instruções para o sistema
     isCombo: true,
-    comboQtd: 3,                 // Vale 3 fichas
-    comboItemName: "Corote",     // O nome que vai na ficha
-    comboItemImage: "/corote.png"// A imagem que vai na ficha
+    comboQtd: 3,                
+    comboItemName: "Corote",    
+    comboItemImage: "/corote.png"
   },
   { 
     nome: "Combo 3 Cervejas", 
@@ -64,6 +63,17 @@ export default function CardapioPage() {
   const [modalAberto, setModalAberto] = useState(false);
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [quantidade, setQuantidade] = useState(1);
+  // Estado para a quantidade de itens no carrinho
+  const [cartCount, setCartCount] = useState(0);
+
+  // Carrega a quantidade do carrinho ao montar o componente
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const carrinhoAtual = JSON.parse(localStorage.getItem("skipow_carrinho") || "[]");
+      const count = carrinhoAtual.reduce((acc, item) => acc + item.quantidade, 0);
+      setCartCount(count);
+    }
+  }, []);
 
   // Filtro
   const produtosFiltrados = PRODUTOS.filter((produto) => {
@@ -72,7 +82,7 @@ export default function CardapioPage() {
     return buscaOk && categoriaOk;
   });
 
-  // --- FUNÇÃO CORRIGIDA: SALVAR COMO COMBO ---
+  // --- SALVAR NO CARRINHO ---
   function salvarCarrinhoENavegar() {
     if (!produtoSelecionado) return;
 
@@ -103,6 +113,10 @@ export default function CardapioPage() {
       }
 
       localStorage.setItem("skipow_carrinho", JSON.stringify(carrinhoAtual));
+      
+      // Atualiza o contador
+      const count = carrinhoAtual.reduce((acc, item) => acc + item.quantidade, 0);
+      setCartCount(count);
     }
 
     router.push("/carrinho");
@@ -133,8 +147,7 @@ export default function CardapioPage() {
     <main className="min-h-screen bg-white flex justify-center">
       <div className="w-full max-w-md px-5 pb-10">
         
-        {/* HEADER COM LINHA DIVISÓRIA ADICIONADA */}
-        {/* Adicionei 'border-b border-gray-100 pb-4' para criar a linha */}
+        {/* HEADER */}
         <header className="pt-6 mb-5 pb-4 border-b-2 border-gray-200 flex items-center justify-between">
           <Image src="/logo-skipow.png" alt="Skipow" width={120} height={36} />
           
@@ -146,8 +159,21 @@ export default function CardapioPage() {
             <div onClick={() => router.push("/perfil")} className="relative w-9 h-9 cursor-pointer hover:opacity-80 transition-opacity">
               <Image src="/avatar.png" alt="Avatar" fill className="rounded-full object-cover border border-gray-100" />
             </div>
+            
+            {/* Ícone do Carrinho com Badge */}
             <button onClick={() => router.push("/carrinho")} className="relative text-gray-900 hover:text-[#40BB43] transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+              </svg>
+              
+              {/* Badge de Notificação (AGORA VERDE SKIPOW) */}
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#40BB43] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] flex justify-center items-center">
+                  {cartCount}
+                </span>
+              )}
             </button>
           </div>
         </header>

@@ -4,7 +4,6 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-// Importando a fonte para garantir a estética exata da marca
 import { Poppins } from 'next/font/google';
 
 const poppins = Poppins({
@@ -33,7 +32,6 @@ export default function CarrinhoPage() {
     }
   }
 
-  // altera quantidade de itens no carrinho
   function alterarQuantidade(index, delta) {
     const novos = [...itens];
     const atual = novos[index];
@@ -47,18 +45,16 @@ export default function CarrinhoPage() {
     atualizarStorage(novos);
   }
 
-  // total do carrinho
+  // Cálculos de Totais
   const total = itens.reduce(
     (acc, item) => acc + item.preco * item.quantidade,
     0
   );
-
+  
   const totalFormatado = total.toLocaleString("pt-BR", {
     minimumFractionDigits: 2,
   });
 
-  // >>> AJUSTE: MUDANÇA DE FLUXO <<<
-  // O botão agora leva para o Cadastro, em vez de gerar fichas direto.
   const handleFinalizarCompra = () => {
     if (typeof window === "undefined") return;
 
@@ -66,28 +62,27 @@ export default function CarrinhoPage() {
       alert("Seu carrinho está vazio.");
       return;
     }
-
-    // Redireciona para o cadastro para iniciar o fluxo de checkout
     router.push("/cadastro");
   };
 
   return (
     <main className={`min-h-screen bg-white flex justify-center ${poppins.className}`}>
-      {/* container tipo celular */}
       <div className="w-full max-w-md px-5 pb-10">
         
         {/* HEADER */}
         <header className="pt-6 mb-4 flex items-center justify-between">
+          
+          {/* BOTÃO VOLTAR (Limpo, vai para o Cardápio) */}
           <button
-            onClick={() => router.back()}
-            className="w-11 h-11 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+            onClick={() => router.push('/cardapio')}
+            className="w-11 h-11 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors border border-gray-50"
           >
             <span className="text-2xl font-bold text-gray-900 pb-1">←</span>
           </button>
 
           <div className="ml-auto flex flex-col items-end text-right">
             <h1 className="text-[26px] font-extrabold text-gray-900 leading-tight">
-              Carrinho de Compras
+              Carrinho
             </h1>
             <p className="text-xs text-gray-500 mt-1 font-medium">
               Total de itens: {itens.reduce((acc, i) => acc + i.quantidade, 0)}

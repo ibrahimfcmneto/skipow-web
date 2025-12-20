@@ -50,7 +50,7 @@ function LoginForm() {
 
       {/* TÍTULO */}
       <div className="text-center mb-8">
-        <h1 className="text-[28px] font-extrabold text-gray-900">Bem-vindo de volta!</h1>
+        <h1 className="text-[28px] font-extrabold text-gray-900">Entre para continuar</h1>
         <p className="text-gray-500 mt-1 text-sm">
           {callbackUrl.includes('pagamento') 
             ? "Faça login para finalizar sua compra." 
@@ -58,7 +58,7 @@ function LoginForm() {
         </p>
       </div>
 
-      {/* FORMULÁRIO (Estilo idêntico ao Cadastro) */}
+      {/* FORMULÁRIO */}
       <form onSubmit={handleSubmit} className="space-y-5">
         
         {/* EMAIL */}
@@ -73,7 +73,6 @@ function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-[#F3F4F6] rounded-xl py-4 px-5 text-gray-700 font-medium placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#40BB43]/50 focus:bg-white transition-all"
             />
-            {/* Ícone opcional (se quiser igual ao wireframe antigo, pode remover ou manter clean como o cadastro novo) */}
           </div>
         </div>
 
@@ -105,7 +104,13 @@ function LoginForm() {
           </div>
           
           <div className="text-right mt-2">
-            <span className="text-xs text-gray-400 hover:text-[#40BB43] cursor-pointer font-bold transition-colors">Esqueceu a senha?</span>
+            {/* --- FUNCIONALIDADE ADICIONADA AQUI --- */}
+            <span 
+                onClick={() => router.push('/esqueci-senha')}
+                className="text-xs text-gray-400 hover:text-[#40BB43] cursor-pointer font-bold transition-colors"
+            >
+                Esqueceu a senha?
+            </span>
           </div>
         </div>
 
@@ -115,12 +120,12 @@ function LoginForm() {
               type="submit"
               className="w-full bg-[#40BB43] hover:bg-[#36a539] text-white font-bold rounded-[20px] py-4 text-[18px] shadow-lg shadow-green-200 transition-transform active:scale-[0.98]"
           >
-              {callbackUrl.includes('pagamento') ? "Entrar e Pagar" : "Entrar"}
+              {callbackUrl.includes('pagamento') ? "Continuar para pagamento" : "Entrar"}
           </button>
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Não tem conta? <span className="text-[#40BB43] font-bold cursor-pointer hover:underline" onClick={() => router.push('/cadastro')}>Cadastre-se</span>
+          Primeira vez aqui? <span className="text-[#40BB43] font-bold cursor-pointer hover:underline" onClick={() => router.push('/cadastro')}>Criar conta</span>
         </p>
 
       </form>
@@ -137,7 +142,7 @@ export default function LoginPage() {
         <LoginForm />
       </Suspense>
 
-      {/* RODAPÉ ONDA VERDE (Igual ao Cadastro) */}
+      {/* RODAPÉ ONDA VERDE */}
       <div className="fixed bottom-0 left-0 w-full h-24 overflow-hidden pointer-events-none z-0">
           <svg className="w-full h-full" viewBox="0 0 500 150" preserveAspectRatio="none">
               <path d="M0.00,49.98 Q250.00,150.00 500.00,49.98 L500.00,150.00 L0.00,150.00 Z" className="fill-[#40BB43]"></path>
