@@ -4,7 +4,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { Poppins } from 'next/font/google';
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Smartphone, CreditCard, QrCode, UserCog, Martini, Sparkles, CheckCircle2, BarChart3, Users } from "lucide-react";
+import { 
+  ArrowRight, 
+  Smartphone, 
+  CreditCard, 
+  QrCode, 
+  UserCog, 
+  Martini, 
+  Sparkles, 
+  BarChart3, 
+  Users, 
+  LucideIcon 
+} from "lucide-react";
 import { useRef } from "react";
 
 // Typography Configuration
@@ -14,8 +25,16 @@ const poppins = Poppins({
   variable: '--font-poppins',
 });
 
+// Interface para as props do FeatureCard
+interface FeatureCardProps {
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+  delay: number;
+}
+
 // Reusable Feature Card Component (Apple Style)
-const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
+const FeatureCard = ({ icon: Icon, title, desc, delay }: FeatureCardProps) => (
   <motion.div 
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
@@ -31,8 +50,14 @@ const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
   </motion.div>
 );
 
+// Interface para as props do MetricItem
+interface MetricItemProps {
+  value: string;
+  label: string;
+}
+
 // Reusable Metric Component
-const MetricItem = ({ value, label }) => (
+const MetricItem = ({ value, label }: MetricItemProps) => (
   <div className="flex flex-col items-center">
     <span className="text-[32px] md:text-[40px] font-extrabold text-white mb-1">{value}</span>
     <span className="text-[13px] md:text-[15px] font-medium text-white/80 uppercase tracking-wide">{label}</span>
@@ -40,7 +65,9 @@ const MetricItem = ({ value, label }) => (
 );
 
 export default function LandingPage() {
-  const containerRef = useRef(null);
+  // Tipagem do useRef para um elemento HTML (section/div)
+  const containerRef = useRef<HTMLElement>(null);
+  
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"]
