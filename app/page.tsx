@@ -84,7 +84,7 @@ export default function LandingPage() {
       {/* NAVIGATION (Eventiza Style) */}
       <nav className="w-full max-w-6xl mx-auto px-6 py-6 flex items-center justify-between z-50">
         <div className="relative w-32 h-10">
-          <Image src="/logo-skipow.png" alt="Skipow" fill className="object-contain" priority />
+          <Image src="/logo_skipow_oficial_sem_fundo-removebg-preview.png" alt="Skipow" fill className="object-contain" priority />
         </div>
         <div className="hidden md:flex gap-8">
             <Link href="#" className="text-sm font-medium text-gray-600 hover:text-gray-900">Soluções</Link>
@@ -299,7 +299,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex flex-col items-center md:items-start">
                 <div className="relative w-24 h-8 mb-2">
-                    <Image src="/logo_skipow_oficial_sem_fundo-removebg-preview.jpg" alt="Skipow" fill className="object-contain" />
+                    <Image src="/logo_skipow_oficial_sem_fundo-removebg-preview.png" alt="Skipow" fill className="object-contain" />
                 </div>
                 <p className="text-[12px] text-gray-400">© {new Date().getFullYear()} Skipow Tecnologia.</p>
             </div>
