@@ -9,282 +9,371 @@ import {
   Smartphone, 
   CreditCard, 
   QrCode, 
-  UserCog, 
-  Martini, 
-  Sparkles, 
   BarChart3, 
   Users, 
+  ShieldCheck, 
+  CheckCircle2, 
+  Zap,
+  Sparkles, // Importação garantida
   LucideIcon 
 } from "lucide-react";
 import { useRef } from "react";
 
-// Typography Configuration
+// --- CONFIGURAÇÃO DE FONTE ---
 const poppins = Poppins({
   weight: ['400', '500', '600', '700', '800'],
   subsets: ['latin'],
   variable: '--font-poppins',
 });
 
-// Interface para as props do FeatureCard
-interface FeatureCardProps {
-  icon: LucideIcon;
-  title: string;
-  desc: string;
-  delay: number;
-}
+// --- COMPONENTES REUTILIZÁVEIS ---
 
-// Reusable Feature Card Component (Apple Style)
-const FeatureCard = ({ icon: Icon, title, desc, delay }: FeatureCardProps) => (
-  <motion.div 
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ delay, duration: 0.6 }}
-    className="flex flex-col items-center text-center p-6 bg-white rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] transition-all duration-300"
-  >
-    <div className="w-14 h-14 rounded-2xl bg-[#40BB43]/10 text-[#40BB43] flex items-center justify-center mb-4">
-      <Icon size={28} strokeWidth={2} />
-    </div>
-    <h3 className="text-[18px] font-bold text-gray-900 mb-2 leading-tight">{title}</h3>
-    <p className="text-[14px] text-gray-500 leading-relaxed">{desc}</p>
-  </motion.div>
-);
-
-// Interface para as props do MetricItem
+// Componente de Métrica (Estilo Eventiza)
 interface MetricItemProps {
   value: string;
   label: string;
 }
-
-// Reusable Metric Component
 const MetricItem = ({ value, label }: MetricItemProps) => (
-  <div className="flex flex-col items-center">
-    <span className="text-[32px] md:text-[40px] font-extrabold text-white mb-1">{value}</span>
-    <span className="text-[13px] md:text-[15px] font-medium text-white/80 uppercase tracking-wide">{label}</span>
+  <div className="flex flex-col items-center p-4">
+    <span className="text-[36px] md:text-[48px] font-extrabold text-white mb-2 leading-none tracking-tight">{value}</span>
+    <span className="text-[14px] font-medium text-white/70 uppercase tracking-wider text-center">{label}</span>
   </div>
 );
 
+// Componente de Benefício (Grid)
+interface BenefitCardProps {
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+}
+const BenefitCard = ({ icon: Icon, title, desc }: BenefitCardProps) => (
+  <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+    <div className="w-14 h-14 rounded-2xl bg-[#40BB43]/10 text-[#40BB43] flex items-center justify-center mb-6">
+      <Icon size={28} strokeWidth={2} />
+    </div>
+    <h3 className="text-[20px] font-bold text-[#1D1D1F] mb-3">{title}</h3>
+    <p className="text-[15px] text-gray-500 leading-relaxed">{desc}</p>
+  </div>
+);
+
+// --- PÁGINA PRINCIPAL ---
+
 export default function LandingPage() {
-  // Tipagem do useRef para um elemento HTML (section/div)
-  const containerRef = useRef<HTMLElement>(null);
-  
+  const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"]
   });
   
-  const y = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
+  const yParallax = useTransform(scrollYProgress, [0, 1], ["-10%", "10%"]);
 
   return (
-    <div className={`${poppins.className} min-h-screen bg-[#F5F5F7] flex flex-col relative overflow-x-hidden selection:bg-[#40BB43] selection:text-white`}>
+    <div className={`${poppins.className} min-h-screen bg-white text-[#1D1D1F] selection:bg-[#40BB43] selection:text-white overflow-x-hidden`}>
       
-      {/* BACKGROUND ELEMENTS */}
-      <div className="fixed top-0 left-0 w-full h-[600px] bg-gradient-to-b from-white to-[#F5F5F7] pointer-events-none -z-10" />
-      
-      {/* NAVIGATION (Eventiza Style) */}
-      <nav className="w-full max-w-6xl mx-auto px-6 py-6 flex items-center justify-between z-50">
-        <div className="relative w-32 h-10">
-          <Image src="/logo_skipow_oficial_sem_fundo-removebg-preview.png" alt="Skipow" fill className="object-contain" priority />
-        </div>
-        <div className="hidden md:flex gap-8">
-            <Link href="#" className="text-sm font-medium text-gray-600 hover:text-gray-900">Soluções</Link>
-            <Link href="#" className="text-sm font-medium text-gray-600 hover:text-gray-900">Preços</Link>
-            <Link href="#" className="text-sm font-medium text-gray-600 hover:text-gray-900">Ajuda</Link>
-        </div>
-        <div className="flex gap-3">
-            <Link href="/bartender/login">
-                <button className="hidden md:block px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-                    Área do Staff
-                </button>
-            </Link>
-            <Link href="/eventos">
-                <button className="px-5 py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-full shadow-lg hover:bg-black transition-transform active:scale-95">
-                    Ver eventos
-                </button>
-            </Link>
+      {/* NAVBAR (Estilo Eventiza) */}
+      <nav className="fixed w-full top-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div className="relative w-32 h-10 cursor-pointer">
+                <Image src="/logo_skipow_oficial_sem_fundo-removebg-preview.png" alt="Skipow" fill className="object-contain" priority />
+            </div>
+            
+            <div className="hidden md:flex gap-8">
+                <Link href="#solucoes" className="text-sm font-medium text-gray-600 hover:text-[#40BB43] transition-colors">Soluções</Link>
+                <Link href="#beneficios" className="text-sm font-medium text-gray-600 hover:text-[#40BB43] transition-colors">Vantagens</Link>
+                <Link href="/ajuda" className="text-sm font-medium text-gray-600 hover:text-[#40BB43] transition-colors">Ajuda</Link>
+            </div>
+
+            <div className="flex gap-4">
+                <Link href="/bartender/login" className="hidden sm:block">
+                    <button className="px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors">
+                        Área do Staff
+                    </button>
+                </Link>
+                <Link href="/organizador/login">
+                    <button className="px-6 py-2.5 bg-[#40BB43] hover:bg-[#36a539] text-white text-sm font-bold rounded-full shadow-lg shadow-green-200 transition-all active:scale-95">
+                        Criar Evento Grátis
+                    </button>
+                </Link>
+            </div>
         </div>
       </nav>
 
-      <main className="flex-1 flex flex-col items-center w-full">
-        
-        {/* 1. HERO SECTION (Focused & Clean) */}
-        <section className="w-full max-w-4xl px-6 pt-16 pb-20 flex flex-col items-center text-center z-10">
-          
-          {/* Badge */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 bg-white border border-gray-200 rounded-full px-4 py-1.5 shadow-sm flex items-center gap-2"
-          >
-            <span className="w-2 h-2 rounded-full bg-[#40BB43] animate-pulse" />
-            <span className="text-[12px] font-semibold text-gray-600 tracking-wide uppercase">A revolução dos eventos</span>
-          </motion.div>
+      <main className="pt-20">
 
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.8 }}
-            className="text-[48px] md:text-[72px] leading-[1.05] font-extrabold text-[#1D1D1F] tracking-tight mb-6"
-          >
-            Menos fila. <br className="hidden md:block"/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#40BB43] to-[#2E8B30]">Mais festa.</span>
-          </motion.h1>
+        {/* 1. HERO SECTION (Impacto Visual) */}
+        <section className="relative w-full max-w-7xl mx-auto px-6 py-7 md:py-32 flex flex-col items-center text-center">
+            {/* Background Decorativo */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-green-50/50 to-transparent rounded-[100%] blur-3xl -z-10" />
 
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-[18px] md:text-[22px] text-gray-500 font-medium leading-relaxed max-w-2xl mx-auto mb-10"
-          >
-            Escolha, pague e mostre o QR no bar. Simples assim.
-          </motion.p>
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="max-w-4xl mx-auto"
+            >
+              <h1 className="text-[48px] md:text-[76px] leading-[1.05] font-bold tracking-tight mb-8 text-[#1D1D1F]">
+                  Menos fila. <br />
+                  <span className="text-[#40BB43]">Mais festa.</span>
+              </h1>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
-            className="flex flex-col sm:flex-row gap-4 w-full justify-center"
-          >
-             <Link href="/eventos" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto h-[64px] px-8 bg-[#40BB43] hover:bg-[#36a539] text-white rounded-[24px] font-bold text-[18px] shadow-[0_20px_40px_-12px_rgba(64,187,67,0.4)] transition-all transform hover:-translate-y-1 active:scale-[0.98] flex items-center justify-center gap-3">
-                    Comprar Fichas
-                    <ArrowRight size={20} />
-                </button>
-             </Link>
-             <Link href="/organizador/login" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto h-[64px] px-8 bg-white border-2 border-gray-100 hover:border-gray-200 text-gray-700 rounded-[24px] font-bold text-[18px] shadow-sm transition-all transform hover:-translate-y-1 active:scale-[0.98]">
-                    Sou Organizador
-                </button>
-             </Link>
-          </motion.div>
-        </section>
+                <p className="text-[18px] md:text-[22px] text-gray-500 font-medium leading-relaxed max-w-2xl mx-auto mb-10">
+                    Compre sua bebida em segundos pelo celular.<br className="hidden md:block"/>
+                    Retire no bar com QR Code e aproveite o momento.
+                </p>
 
-        {/* 2. IMAGE SHOWCASE (Parallax similar to Eventiza's main banner) */}
-        <section ref={containerRef} className="w-full max-w-6xl px-4 md:px-6 mb-24">
-            <div className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-[40px] overflow-hidden shadow-2xl shadow-gray-200">
-                <motion.div style={{ y }} className="absolute inset-0 w-full h-[120%] -top-[10%]">
+                <div className="flex flex-col sm:flex-row gap-4 w-full justify-center mb-16">
+                    <Link href="/organizador/login">
+                        <button className="w-full sm:w-auto h-[60px] px-8 bg-[#1D1D1F] hover:bg-black text-white rounded-[20px] font-bold text-[18px] shadow-xl transition-all transform hover:-translate-y-1 active:scale-[0.98] flex items-center justify-center gap-3">
+                            Quero usar no meu evento
+                            <ArrowRight size={20} />
+                        </button>
+                    </Link>
+                    <Link href="/eventos">
+                        <button className="w-full sm:w-auto h-[60px] px-8 bg-white border border-gray-200 text-gray-700 hover:border-[#40BB43] hover:text-[#40BB43] rounded-[20px] font-bold text-[18px] shadow-sm transition-all active:scale-[0.98]">
+                            Apenas comprar fichas
+                        </button>
+                    </Link>
+                </div>
+            </motion.div>
+
+            {/* Imagem de Destaque (Parallax) */}
+            <div ref={containerRef} className="relative w-full max-w-5xl aspect-[16/9] md:aspect-[21/9] rounded-[40px] overflow-hidden shadow-2xl shadow-gray-200 border border-white/50">
+                <motion.div style={{ y: yParallax }} className="absolute inset-0 w-full h-[120%] -top-[10%]">
                     <Image 
-                        src="/brinde.jpg" // Use your uploaded image
-                        alt="Pessoas brindando em festa"
+                        src="/festas-de-faculdade.jpg" 
+                        alt="Festa universitária com sistema Skipow"
                         fill
                         className="object-cover"
                         priority
                     />
-                    <div className="absolute inset-0 bg-black/20" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 </motion.div>
                 
-                {/* Floating UI Elements Simulation */}
-                <motion.div 
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="absolute bottom-8 left-8 md:bottom-12 md:left-12 bg-white/90 backdrop-blur-xl p-4 rounded-[24px] shadow-lg border border-white/50 flex items-center gap-4 max-w-xs"
-                >
-                    <div className="w-12 h-12 bg-[#40BB43] rounded-full flex items-center justify-center text-white">
-                        <QrCode size={24} />
+                {/* Overlay Informativo */}
+                <div className="absolute bottom-8 left-8 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex items-center gap-4">
+                    <div className="w-10 h-10 bg-[#40BB43] rounded-full flex items-center justify-center text-white">
+                        <CheckCircle2 size={20} />
                     </div>
-                    <div>
-                        <p className="text-[14px] font-bold text-gray-900">Pedido Confirmado</p>
-                        <p className="text-[12px] text-gray-500">Mostre no balcão</p>
+                    <div className="text-left">
+                        <p className="text-white font-bold text-sm">Pedido #2930</p>
+                        <p className="text-white/80 text-xs">Pronto para retirada</p>
                     </div>
-                </motion.div>
+                </div>
             </div>
         </section>
 
-        {/* 3. METRICS SECTION */}
+{/* 2. IMPACT SECTION (Impacto esperado) */}
         <section className="w-full bg-[#1D1D1F] py-24 relative overflow-hidden">
-            {/* Background Pattern Sutil */}
-            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#40BB43 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+          
+          {/* Pattern de fundo Sutil */}
+          <div 
+            className="absolute inset-0 opacity-5 pointer-events-none" 
+            style={{ 
+              backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }}
+          />
+
+          <div className="max-w-7xl mx-auto px-6 relative z-10">
             
-            <div className="max-w-6xl mx-auto px-6 relative z-10">
+            {/* Header da Seção */}
+            <div className="text-center mb-20">
+              <h2 className="text-[32px] md:text-[48px] font-bold text-white mb-6 leading-tight tracking-tight">
+                Mais vendas no bar, <br className="md:hidden"/>
+                <span className="text-white/50">com menos atrito.</span>
+              </h2>
+
+              <p className="text-white/70 text-[18px] md:text-[20px] max-w-3xl mx-auto leading-relaxed mb-10">
+                A Skipow elimina o gargalo do caixa e simplifica a operação do bar.
+                O resultado costuma aparecer em três frentes: mais velocidade, mais compras
+                por impulso e menos custo fixo para operar.
+              </p>
+
+              {/* Disclaimer Estilizado (Badge) */}
+              <div className="inline-flex items-center justify-center bg-white/5 border border-white/10 rounded-xl px-5 py-3 backdrop-blur-sm max-w-2xl">
+                <p className="text-white/40 text-[13px] text-center leading-snug">
+                  *Estimativas baseadas em dinâmica de eventos (menos fila = mais giro e consumo).
+                  Os resultados variam conforme público, cardápio e operação.
+                </p>
+              </div>
+            </div>
+
+            {/* Grid de Métricas */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12 border-t border-white/10 pt-16">
+              
+              {/* Item 1 */}
+              <div className="flex flex-col items-center text-center group cursor-default">
+                <span className="text-[40px] md:text-[52px] font-extrabold text-white mb-3 leading-none tracking-tight group-hover:text-[#40BB43] transition-colors duration-300">
+                  +10–30%
+                </span>
+                <span className="text-[13px] font-medium text-white/60 uppercase tracking-wider leading-snug max-w-[200px]">
+                  Potencial de aumento<br/>no consumo
+                </span>
+              </div>
+
+              {/* Item 2 */}
+              <div className="flex flex-col items-center text-center group cursor-default">
+                <span className="text-[40px] md:text-[52px] font-extrabold text-white mb-3 leading-none tracking-tight group-hover:text-[#40BB43] transition-colors duration-300">
+                  2–3x
+                </span>
+                <span className="text-[13px] font-medium text-white/60 uppercase tracking-wider leading-snug max-w-[200px]">
+                  Mais velocidade<br/>no atendimento
+                </span>
+              </div>
+
+              {/* Item 3 */}
+              <div className="flex flex-col items-center text-center group cursor-default">
+                <span className="text-[40px] md:text-[52px] font-extrabold text-white mb-3 leading-none tracking-tight group-hover:text-[#40BB43] transition-colors duration-300">
+                  -50%
+                </span>
+                <span className="text-[13px] font-medium text-white/60 uppercase tracking-wider leading-snug max-w-[200px]">
+                  Necessidade de<br/>caixas físicos
+                </span>
+              </div>
+
+              {/* Item 4 */}
+              <div className="flex flex-col items-center text-center group cursor-default">
+                <span className="text-[40px] md:text-[52px] font-extrabold text-white mb-3 leading-none tracking-tight group-hover:text-[#40BB43] transition-colors duration-300">
+                  Zero
+                </span>
+                <span className="text-[13px] font-medium text-white/60 uppercase tracking-wider leading-snug max-w-[200px]">
+                  Custo fixo mensal<br/>(modelo %)
+                </span>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+
+        {/* 3. ALTERNATING FEATURES (Modelo Eventiza) */}
+        <section id="solucoes" className="w-full py-32 px-6 overflow-hidden">
+            <div className="max-w-6xl mx-auto space-y-32">
+                
+                {/* Feature 1: App do Cliente */}
+                <div className="flex flex-col md:flex-row items-center gap-16">
+                    <div className="md:w-1/2">
+                        <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-[#40BB43] mb-6">
+                            <Smartphone size={24} />
+                        </div>
+                        <h2 className="text-[32px] md:text-[40px] font-bold text-[#1D1D1F] mb-6 leading-tight">
+                            Venda fichas direto no <br/><span className="text-[#40BB43]">celular do cliente</span>
+                        </h2>
+                        <p className="text-[17px] text-gray-500 leading-relaxed mb-8">
+                            Seus clientes pedem bebidas direto pelo app, sem precisar de caixas físicos ou enfrentar filas para comprar fichas de papel. Aumente o consumo por impulso com um cardápio digital atrativo.
+                        </p>
+                        <ul className="space-y-4">
+                            <li className="flex items-center gap-3 text-gray-700 font-medium"><CheckCircle2 className="text-[#40BB43]" size={20} /> Cardápio digital personalizado</li>
+                            <li className="flex items-center gap-3 text-gray-700 font-medium"><CheckCircle2 className="text-[#40BB43]" size={20} /> Pagamento via Pix e Cartão</li>
+                            <li className="flex items-center gap-3 text-gray-700 font-medium"><CheckCircle2 className="text-[#40BB43]" size={20} /> Carteira digital segura</li>
+                        </ul>
+                    </div>
+                    <div className="md:w-1/2 relative">
+                        <div className="relative w-full aspect-[4/3] rounded-[32px] overflow-hidden shadow-2xl bg-gray-100">
+                             {/* Placeholder visual para o App */}
+                             <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                                <Image src="/logo-skipow.png" alt="App Preview" width={200} height={60} className="opacity-20" />
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Feature 2: Dashboard Organizador */}
+                <div className="flex flex-col md:flex-row-reverse items-center gap-16">
+                    <div className="md:w-1/2">
+                        <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-6">
+                            <BarChart3 size={24} />
+                        </div>
+                        <h2 className="text-[32px] md:text-[40px] font-bold text-[#1D1D1F] mb-6 leading-tight">
+                            Consulte relatórios em <br/><span className="text-blue-600">tempo real</span>
+                        </h2>
+                        <p className="text-[17px] text-gray-500 leading-relaxed mb-8">
+                            Acompanhe as suas vendas com tabelas e gráficos ao vivo. Tenha controle total sobre o estoque, desempenho dos bartenders e faturamento, tudo em um painel intuitivo.
+                        </p>
+                        <ul className="space-y-4">
+                            <li className="flex items-center gap-3 text-gray-700 font-medium"><CheckCircle2 className="text-blue-600" size={20} /> Gráficos de vendas ao vivo</li>
+                            <li className="flex items-center gap-3 text-gray-700 font-medium"><CheckCircle2 className="text-blue-600" size={20} /> Controle de estoque automático</li>
+                            <li className="flex items-center gap-3 text-gray-700 font-medium"><CheckCircle2 className="text-blue-600" size={20} /> Exportação de dados financeiros</li>
+                        </ul>
+                    </div>
+                    <div className="md:w-1/2 relative">
+                        <div className="relative w-full aspect-[4/3] rounded-[32px] overflow-hidden shadow-2xl bg-gray-100 border border-gray-200">
+                             <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                                <BarChart3 size={64} className="text-gray-300" />
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        {/* 4. BENEFITS GRID (Vantagens e Economia) */}
+        <section id="beneficios" className="w-full bg-[#F9F9F9] py-32 px-6">
+            <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-16">
-                    <h2 className="text-[32px] md:text-[40px] font-bold text-white mb-6 leading-tight">
-                        Escale seu evento com a segurança de quem<br className="hidden md:block" /> já atendeu <span className="text-[#40BB43]">milhares de eventos</span>
-                    </h2>
-                    <p className="text-white/60 text-[18px] max-w-2xl mx-auto">
-                        De festas universitárias a grandes festivais: nossa tecnologia foi testada e aprovada no campo de batalha para garantir mais vendas e zero filas.
-                    </p>
+                    <h2 className="text-[32px] md:text-[40px] font-bold text-[#1D1D1F] mb-4">Mais vantagens e economia</h2>
+                    <p className="text-gray-500 text-[18px]">Por que os organizadores escolhem a Skipow?</p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 border-t border-white/10 pt-12">
-                    <MetricItem value="+100" label="Eventos Realizados" />
-                    <MetricItem value="+5.000" label="Fichas Vendidas" />
-                    <MetricItem value="+1.000" label="Usuários Cadastrados" />
-                    <MetricItem value="+70" label="Produtores Atendidos" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <BenefitCard 
+                        icon={Zap} 
+                        title="Plataforma Self-Service" 
+                        desc="Você cria seu evento, cadastra os produtos e começa a vender em minutos, sem depender de ninguém." 
+                    />
+                    <BenefitCard 
+                        icon={CreditCard} 
+                        title="Melhor Custo-Benefício" 
+                        desc="Praticamos uma das menores taxas do mercado. Sem mensalidade, você só paga uma % sobre o que vender." 
+                    />
+                    <BenefitCard 
+                        icon={ShieldCheck} 
+                        title="Segurança Total" 
+                        desc="QR Codes criptografados e anti-fraude garantem que você receba por cada bebida entregue." 
+                    />
+                    <BenefitCard 
+                        icon={Users} 
+                        title="Suporte Humanizado" 
+                        desc="Nosso time está disponível via WhatsApp para garantir que sua operação rode lisa durante o evento." 
+                    />
+                    <BenefitCard 
+                        icon={QrCode} 
+                        title="Validação Offline" 
+                        desc="A internet caiu? Não tem problema. Nosso sistema de validação funciona mesmo sem conexão." 
+                    />
+                    <BenefitCard 
+                        icon={Sparkles} 
+                        title="Experiência Premium" 
+                        desc="Ofereça uma experiência de compra moderna que valoriza a marca do seu evento." 
+                    />
                 </div>
             </div>
         </section>
 
-        {/* 4. FEATURES GRID (Bento Style) */}
-        <section className="w-full max-w-6xl mx-auto px-6 py-24">
-            <div className="text-center mb-16">
-                <span className="text-[#40BB43] font-bold tracking-wider uppercase text-[12px] mb-2 block">Como funciona</span>
-                <h2 className="text-[36px] font-bold text-[#1D1D1F]">Soluções para o seu evento</h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FeatureCard 
-                    icon={Smartphone} 
-                    title="Cardápio Digital" 
-                    desc="Seus clientes pedem bebidas direto pelo celular, sem precisar de caixas físicos."
-                    delay={0.1}
-                />
-                <FeatureCard 
-                    icon={CreditCard} 
-                    title="Pagamento Instantâneo" 
-                    desc="Integração total com PIX e Cartão de Crédito. Aprovação em segundos."
-                    delay={0.2}
-                />
-                <FeatureCard 
-                    icon={QrCode} 
-                    title="Retirada Ágil" 
-                    desc="O bartender escaneia o QR Code e entrega a bebida. Simples, rápido e seguro."
-                    delay={0.3}
-                />
-                <FeatureCard 
-                    icon={BarChart3} 
-                    title="Gestão em Tempo Real" 
-                    desc="Acompanhe vendas, estoque e faturamento ao vivo pelo painel do organizador."
-                    delay={0.4}
-                />
-                <FeatureCard 
-                    icon={Users} 
-                    title="Controle de Staff" 
-                    desc="Gerencie permissões para bartenders e gerentes com facilidade."
-                    delay={0.5}
-                />
-                <FeatureCard 
-                    icon={Sparkles} 
-                    title="Experiência Premium" 
-                    desc="Design intuitivo que valoriza a marca do seu evento e encanta o público."
-                    delay={0.6}
-                />
-            </div>
-        </section>
-
-        {/* 5. CTA FINAL (Eventiza Style Footer CTA) */}
-        <section className="w-full px-6 mb-12">
-            <div className="max-w-6xl mx-auto bg-[#40BB43] rounded-[40px] px-8 py-16 md:p-20 text-center relative overflow-hidden shadow-2xl shadow-green-200">
+        {/* 5. FINAL CTA (Verde Skipow) */}
+        <section className="w-full px-6 py-20 bg-white">
+            <div className="max-w-5xl mx-auto bg-[#40BB43] rounded-[48px] px-8 py-20 text-center relative overflow-hidden shadow-2xl shadow-green-200">
                 {/* Decorative Circles */}
                 <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2" />
-                <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 rounded-full translate-x-1/3 translate-y-1/3" />
+                <div className="absolute bottom-0 right-0 w-80 h-80 bg-white/10 rounded-full translate-x-1/3 translate-y-1/3" />
 
-                <div className="relative z-10 max-w-2xl mx-auto">
+                <div className="relative z-10">
                     <h2 className="text-[32px] md:text-[48px] font-bold text-white mb-6 leading-tight">
                         Pronto para transformar seu evento?
                     </h2>
-                    <p className="text-white/90 text-[18px] mb-10 leading-relaxed">
-                        Junte-se aos produtores que estão faturando mais e eliminando filas com a tecnologia Skipow.
+                    <p className="text-white/90 text-[18px] mb-10 max-w-2xl mx-auto">
+                        Crie sua conta agora, cadastre seus produtos e comece a vender sem filas. É rápido, fácil e gratuito para começar.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link href="/organizador/login">
                             <button className="w-full sm:w-auto px-8 py-4 bg-white text-[#40BB43] font-bold text-[18px] rounded-full shadow-lg hover:bg-gray-50 transition-all active:scale-95">
-                                Começar Gratuitamente
+                                Criar evento gratuitamente
                             </button>
                         </Link>
                         <Link href="/fale-conosco">
                             <button className="w-full sm:w-auto px-8 py-4 bg-[#40BB43] border-2 border-white/30 text-white font-bold text-[18px] rounded-full hover:bg-[#36a539] transition-all active:scale-95">
-                                Falar com Consultor
+                                Falar com consultor
                             </button>
                         </Link>
                     </div>
@@ -296,27 +385,26 @@ export default function LandingPage() {
 
       {/* FOOTER */}
       <footer className="w-full bg-white border-t border-gray-100 py-12">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex flex-col items-center md:items-start">
-                <div className="relative w-24 h-8 mb-2">
+                <div className="relative w-28 h-10 mb-2">
                     <Image src="/logo_skipow_oficial_sem_fundo-removebg-preview.png" alt="Skipow" fill className="object-contain" />
                 </div>
-                <p className="text-[12px] text-gray-400">© {new Date().getFullYear()} Skipow Tecnologia.</p>
+                <p className="text-[13px] text-gray-400">© {new Date().getFullYear()} Skipow Tecnologia para Eventos.</p>
             </div>
             
-            <div className="flex gap-8 text-[13px] font-medium text-gray-500">
+            <div className="flex gap-8 text-[14px] font-medium text-gray-500">
                 <Link href="#" className="hover:text-[#40BB43] transition-colors">Termos de Uso</Link>
                 <Link href="#" className="hover:text-[#40BB43] transition-colors">Privacidade</Link>
                 <Link href="#" className="hover:text-[#40BB43] transition-colors">Sobre nós</Link>
             </div>
 
             <div className="flex gap-4">
-               {/* Social Icons Placeholder */}
-               <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:bg-[#40BB43] hover:text-white transition-all cursor-pointer">
+               <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:bg-[#40BB43] hover:text-white transition-all cursor-pointer">
                   <span className="font-bold text-xs">IG</span>
                </div>
-               <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:bg-[#0077b5] hover:text-white transition-all cursor-pointer">
-                  <span className="font-bold text-xs">IN</span>
+               <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:bg-[#0077b5] hover:text-white transition-all cursor-pointer">
+                  <span className="font-bold text-xs">LN</span>
                </div>
             </div>
         </div>
