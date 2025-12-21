@@ -117,7 +117,7 @@ export default function LandingPage() {
               </h1>
 
                 <p className="text-[18px] md:text-[22px] text-gray-500 font-medium leading-relaxed max-w-2xl mx-auto mb-10">
-                    Compre sua bebida em segundos pelo celular.<br className="hidden md:block"/>
+                    Compre sua bebida em segundos pelo celular. <br className="hidden md:block"/>
                     Retire no bar com QR Code e aproveite o momento.
                 </p>
 
@@ -162,82 +162,75 @@ export default function LandingPage() {
             </div>
         </section>
 
-{/* 2. IMPACT SECTION (Impacto esperado) */}
-        <section className="w-full bg-[#1D1D1F] py-24 relative overflow-hidden">
+        {/* 2. IMPACT SECTION */}
+        <section className="w-full bg-[#0F0F0F] py-24 md:py-32 relative overflow-hidden border-t border-white/5">
           
-          {/* Pattern de fundo Sutil */}
-          <div 
-            className="absolute inset-0 opacity-5 pointer-events-none" 
-            style={{ 
-              backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px)",
-              backgroundSize: "32px 32px",
-            }}
-          />
+          {/* Luz de fundo sutil */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#40BB43]/5 blur-[120px] rounded-full pointer-events-none" />
 
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             
-            {/* Header da Seção */}
-            <div className="text-center mb-20">
-              <h2 className="text-[32px] md:text-[48px] font-bold text-white mb-6 leading-tight tracking-tight">
+            {/* Header Centralizado */}
+            <div className="text-center mb-20 max-w-3xl mx-auto">
+              <h2 className="text-[32px] md:text-[48px] font-semibold text-white mb-6 leading-tight tracking-tight">
                 Mais vendas no bar, <br className="md:hidden"/>
-                <span className="text-white/50">com menos atrito.</span>
+                <span className="text-white/40">com menos atrito.</span>
               </h2>
 
-              <p className="text-white/70 text-[18px] md:text-[20px] max-w-3xl mx-auto leading-relaxed mb-10">
-                A Skipow elimina o gargalo do caixa e simplifica a operação do bar.
-                O resultado costuma aparecer em três frentes: mais velocidade, mais compras
-                por impulso e menos custo fixo para operar.
+              <p className="text-white/60 text-[18px] md:text-[20px] leading-relaxed mb-8 font-light">
+                A Skipow elimina o gargalo do caixa e simplifica a operação. 
+                O resultado é visível: <span className="text-white font-medium">mais velocidade</span>, <span className="text-white font-medium">mais compras por impulso</span> e <span className="text-white font-medium">menos custo fixo</span> para operar.
               </p>
 
-              {/* Disclaimer Estilizado (Badge) */}
-              <div className="inline-flex items-center justify-center bg-white/5 border border-white/10 rounded-xl px-5 py-3 backdrop-blur-sm max-w-2xl">
-                <p className="text-white/40 text-[13px] text-center leading-snug">
-                  *Estimativas baseadas em dinâmica de eventos (menos fila = mais giro e consumo).
-                  Os resultados variam conforme público, cardápio e operação.
+              {/* Disclaimer (Pílula Minimalista) */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                <Sparkles size={14} className="text-[#40BB43]" />
+                <p className="text-white/40 text-[12px] font-medium tracking-wide">
+                  Dados baseados em performance média de eventos
                 </p>
               </div>
             </div>
 
-            {/* Grid de Métricas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12 border-t border-white/10 pt-16">
+            {/* Grid de Métricas (Estilo Dashboard/Tabela) */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 border border-white/10 rounded-3xl overflow-hidden bg-white/[0.02] backdrop-blur-sm">
               
               {/* Item 1 */}
-              <div className="flex flex-col items-center text-center group cursor-default">
-                <span className="text-[40px] md:text-[52px] font-extrabold text-white mb-3 leading-none tracking-tight group-hover:text-[#40BB43] transition-colors duration-300">
-                  +10–30%
+              <div className="flex flex-col items-center justify-center p-8 border-r border-b lg:border-b-0 border-white/10 group hover:bg-white/[0.02] transition-colors cursor-default">
+                <span className="text-[32px] md:text-[44px] font-bold text-white mb-2 tracking-tight group-hover:text-[#40BB43] transition-colors">
+                  +30%
                 </span>
-                <span className="text-[13px] font-medium text-white/60 uppercase tracking-wider leading-snug max-w-[200px]">
-                  Potencial de aumento<br/>no consumo
+                <span className="text-[12px] font-medium text-white/50 uppercase tracking-widest text-center leading-relaxed">
+                  Potencial de<br/>Consumo
                 </span>
               </div>
 
               {/* Item 2 */}
-              <div className="flex flex-col items-center text-center group cursor-default">
-                <span className="text-[40px] md:text-[52px] font-extrabold text-white mb-3 leading-none tracking-tight group-hover:text-[#40BB43] transition-colors duration-300">
-                  2–3x
+              <div className="flex flex-col items-center justify-center p-8 lg:border-r border-b lg:border-b-0 border-white/10 group hover:bg-white/[0.02] transition-colors cursor-default">
+                <span className="text-[32px] md:text-[44px] font-bold text-white mb-2 tracking-tight group-hover:text-[#40BB43] transition-colors">
+                  3x
                 </span>
-                <span className="text-[13px] font-medium text-white/60 uppercase tracking-wider leading-snug max-w-[200px]">
-                  Mais velocidade<br/>no atendimento
+                <span className="text-[12px] font-medium text-white/50 uppercase tracking-widest text-center leading-relaxed">
+                  Velocidade no<br/>Atendimento
                 </span>
               </div>
 
               {/* Item 3 */}
-              <div className="flex flex-col items-center text-center group cursor-default">
-                <span className="text-[40px] md:text-[52px] font-extrabold text-white mb-3 leading-none tracking-tight group-hover:text-[#40BB43] transition-colors duration-300">
+              <div className="flex flex-col items-center justify-center p-8 border-r border-white/10 group hover:bg-white/[0.02] transition-colors cursor-default">
+                <span className="text-[32px] md:text-[44px] font-bold text-white mb-2 tracking-tight group-hover:text-[#40BB43] transition-colors">
                   -50%
                 </span>
-                <span className="text-[13px] font-medium text-white/60 uppercase tracking-wider leading-snug max-w-[200px]">
-                  Necessidade de<br/>caixas físicos
+                <span className="text-[12px] font-medium text-white/50 uppercase tracking-widest text-center leading-relaxed">
+                  Custo com<br/>Staff
                 </span>
               </div>
 
               {/* Item 4 */}
-              <div className="flex flex-col items-center text-center group cursor-default">
-                <span className="text-[40px] md:text-[52px] font-extrabold text-white mb-3 leading-none tracking-tight group-hover:text-[#40BB43] transition-colors duration-300">
+              <div className="flex flex-col items-center justify-center p-8 group hover:bg-white/[0.02] transition-colors cursor-default">
+                <span className="text-[32px] md:text-[44px] font-bold text-white mb-2 tracking-tight group-hover:text-[#40BB43] transition-colors">
                   Zero
                 </span>
-                <span className="text-[13px] font-medium text-white/60 uppercase tracking-wider leading-snug max-w-[200px]">
-                  Custo fixo mensal<br/>(modelo %)
+                <span className="text-[12px] font-medium text-white/50 uppercase tracking-widest text-center leading-relaxed">
+                  Custo Fixo<br/>Mensal
                 </span>
               </div>
 
@@ -247,8 +240,8 @@ export default function LandingPage() {
 
 
         {/* 3. ALTERNATING FEATURES (Modelo Eventiza) */}
-        <section id="solucoes" className="w-full py-32 px-6 overflow-hidden">
-            <div className="max-w-6xl mx-auto space-y-32">
+        <section id="solucoes" className="w-full py-12 px-6 overflow-hidden">
+            <div className="max-w-6xl mx-auto space-y-12">
                 
                 {/* Feature 1: App do Cliente */}
                 <div className="flex flex-col md:flex-row items-center gap-16">
@@ -309,7 +302,7 @@ export default function LandingPage() {
         </section>
 
         {/* 4. BENEFITS GRID (Vantagens e Economia) */}
-        <section id="beneficios" className="w-full bg-[#F9F9F9] py-32 px-6">
+        <section id="beneficios" className="w-full bg-[#F9F9F9] py-12 px-6">
             <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-[32px] md:text-[40px] font-bold text-[#1D1D1F] mb-4">Mais vantagens e economia</h2>
