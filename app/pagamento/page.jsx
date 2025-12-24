@@ -2,13 +2,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Poppins } from 'next/font/google';
-import { Copy, CreditCard, QrCode } from "lucide-react"; // Ícones para dar realismo
+import { 
+  Copy, 
+  CreditCard, 
+  QrCode, 
+  Smartphone, 
+  User, 
+  Mail, 
+  MapPin, 
+  Calendar, 
+  ChevronLeft, 
+  Ticket, 
+  CheckCircle2, 
+  AlertCircle,
+  ShoppingBag
+} from "lucide-react";
 
 const poppins = Poppins({
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
 });
 
@@ -18,137 +31,375 @@ export default function PagamentoPage() {
   const [metodo, setMetodo] = useState("pix"); 
   const [copiado, setCopiado] = useState(false);
 
-  // Código Pix Falso para simulação
+  // Estados de Dados
+  const [telefone, setTelefone] = useState("");
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+
+  // Estado para controlar a notificação de erro
+  const [erroTelefone, setErroTelefone] = useState(false);
+  const [mensagemErro, setMensagemErro] = useState(""); // Nova variável para mensagem dinâmica
+
   const PIX_CODE = "00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-4266141740005204000053039865802BR5913Skipow Eventos6008Sao Paulo62070503***6304E2CA";
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const data = localStorage.getItem("skipow_carrinho");
       if (data) setItens(JSON.parse(data));
+      
+      const userData = localStorage.getItem("skipow_user_data");
+      if (userData) {
+          const user = JSON.parse(userData);
+          if (user.telefone) setTelefone(user.telefone);
+          if (user.nome) setNome(user.nome);
+          if (user.email) setEmail(user.email);
+      }
     }
   }, []);
 
   const total = itens.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
   const totalFormatado = total.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 
-  // Função para copiar o Pix
+  // --- FUNÇÃO DE MÁSCARA DE TELEFONE ---
+  const handleTelefoneChange = (e) => {
+    let value = e.target.value;
+
+    // 1. Remove tudo que não é número
+    value = value.replace(/\D/g, "");
+
+    // 2. Limita a 11 dígitos
+    value = value.slice(0, 11);
+
+    // 3. Aplica a formatação (00) 00000-0000
+    if (value.length > 2) {
+      value = value.replace(/^(\d{2})(\d)/g, "($1) $2");
+    }
+    if (value.length > 7) {
+      value = value.replace(/(\d{5})(\d{4})$/, "$1-$2");
+    }
+
+    setTelefone(value);
+    
+    // Se o usuário começar a corrigir, removemos o erro
+    if (erroTelefone) setErroTelefone(false);
+  };
+
   const copiarPix = () => {
     navigator.clipboard.writeText(PIX_CODE);
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2000);
   };
 
-  // Botão Pagar
   const handlePagar = () => {
-    // Redireciona para a tela de Conclusão (onde a mágica acontece)
+    // 1. Limpa a formatação para contar apenas os números
+    const numerosApenas = telefone.replace(/\D/g, "");
+
+    // 2. Verifica se está vazio
+    if (!numerosApenas) {
+      setMensagemErro("Telefone obrigatório");
+      dispararErro();
+      return;
+    }
+
+    // 3. Verifica se tem menos de 11 dígitos (DDD + 9 números)
+    if (numerosApenas.length < 11) {
+      setMensagemErro("Número incompleto");
+      dispararErro();
+      return;
+    }
+
+    // Sucesso: Salva e prossegue
+    if (typeof window !== "undefined") {
+        localStorage.setItem("skipow_user_data", JSON.stringify({ 
+            nome: nome, 
+            email: email, 
+            telefone,
+            logado: true 
+        }));
+    }
+
     router.push("/pagamento/concluido");
   };
 
+  // Função auxiliar para mostrar o erro
+  function dispararErro() {
+    setErroTelefone(true);
+    setTimeout(() => setErroTelefone(false), 4000);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   return (
-    <main className={`min-h-screen bg-[#F9F9F9] flex justify-center ${poppins.className}`}>
-      <div className="w-full max-w-md px-6 py-8 pb-24">
+    <main className={`min-h-screen bg-[#F2F2F7] flex justify-center ${poppins.className} text-[#1D1D1F]`}>
+      <div className="w-full max-w-md pb-40 relative">
         
-        <header className="flex items-center gap-4 mb-6">
-            <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-800 font-bold border border-gray-100">
-                ←
-            </button>
-            <h1 className="text-2xl font-extrabold text-gray-900">Pagamento</h1>
-        </header>
-
-        {/* RESUMO SIMPLES */}
-        <div className="bg-white p-5 rounded-[24px] shadow-sm mb-6 border border-gray-100">
-           <div className="flex justify-between items-center mb-4">
-              <span className="text-gray-500 font-medium">Total a pagar</span>
-              <span className="text-3xl font-extrabold text-[#40BB43]">R$ {totalFormatado}</span>
-           </div>
-           <div className="text-sm text-gray-400 border-t border-gray-100 pt-3">
-              {itens.length} itens no pedido
-           </div>
-        </div>
-
-        {/* SELEÇÃO DE MÉTODO */}
-        <h3 className="text-lg font-bold text-gray-900 mb-3">Escolha como pagar</h3>
-        
-        <div className="space-y-4 mb-8">
-            
-            {/* --- OPÇÃO PIX --- */}
-            <div className={`rounded-[20px] border-2 transition-all overflow-hidden ${metodo === 'pix' ? 'border-[#40BB43] bg-white shadow-md' : 'border-transparent bg-white shadow-sm'}`}>
-                <div 
-                    onClick={() => setMetodo("pix")}
-                    className="p-4 cursor-pointer flex items-center justify-between"
-                >
-                    <div className="flex items-center gap-3">
-                        <QrCode size={24} className={metodo === 'pix' ? "text-[#40BB43]" : "text-gray-400"} />
-                        <div>
-                            <p className="font-bold text-gray-800">Pix</p>
-                            <p className="text-[10px] text-green-600 font-bold uppercase tracking-wide">Aprovação Imediata</p>
-                        </div>
+        {/* --- NOTIFICAÇÃO DE ERRO --- */}
+        {erroTelefone && (
+            <div className="fixed top-6 left-0 w-full flex justify-center z-50 px-4 pointer-events-none">
+                <div className="bg-[#1D1D1F] text-white p-4 rounded-[22px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] flex items-center gap-4 max-w-sm w-full animate-in slide-in-from-top-5 fade-in duration-300 pointer-events-auto border border-white/10">
+                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                        <Smartphone size={20} className="text-white" />
                     </div>
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${metodo === 'pix' ? 'border-[#40BB43]' : 'border-gray-300'}`}>
-                        {metodo === 'pix' && <div className="w-2.5 h-2.5 rounded-full bg-[#40BB43]" />}
-                    </div>
-                </div>
-
-                {/* ÁREA DO PIX COPIA E COLA (Só aparece se selecionado) */}
-                {metodo === 'pix' && (
-                    <div className="px-4 pb-5 pt-0 animate-in slide-in-from-top-2">
-                        <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
-                            <p className="text-xs text-gray-500 mb-2 font-medium">Pix Copia e Cola:</p>
-                            <div className="flex items-center justify-between gap-2 bg-white border border-gray-200 rounded-lg p-2">
-                                <p className="text-xs text-gray-400 truncate font-mono select-all">
-                                    {PIX_CODE}
-                                </p>
-                                <button 
-                                    onClick={copiarPix}
-                                    className="text-[#40BB43] hover:bg-green-50 p-1.5 rounded-md transition-colors"
-                                >
-                                    {copiado ? <span className="text-xs font-bold">Copiado!</span> : <Copy size={16} />}
-                                </button>
-                            </div>
-                        </div>
-                        <p className="text-[11px] text-center text-gray-400 mt-3">
-                            O código expira em 10 minutos.
+                    <div>
+                        <h3 className="text-[14px] font-bold leading-tight">{mensagemErro}</h3>
+                        <p className="text-[12px] text-gray-300 leading-tight mt-0.5 font-medium">
+                            Verifique o número e tente novamente.
                         </p>
                     </div>
-                )}
+                </div>
             </div>
+        )}
 
-            {/* --- OPÇÃO CARTÃO --- */}
-            <div className={`rounded-[20px] border-2 transition-all overflow-hidden ${metodo === 'cartao' ? 'border-[#40BB43] bg-white shadow-md' : 'border-transparent bg-white shadow-sm'}`}>
-                <div 
-                    onClick={() => setMetodo("cartao")}
-                    className="p-4 cursor-pointer flex items-center justify-between"
-                >
-                    <div className="flex items-center gap-3">
-                        <CreditCard size={24} className={metodo === 'cartao' ? "text-[#40BB43]" : "text-gray-400"} />
-                        <span className="font-bold text-gray-800">Cartão de Crédito</span>
+        {/* HEADER */}
+        <div className="px-4 pt-6 pb-4 bg-[#F2F2F7]/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between">
+            <button 
+                onClick={() => router.back()} 
+                className="w-10 h-10 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex items-center justify-center text-[#1D1D1F] hover:bg-gray-50 transition-all border border-gray-100 active:scale-95"
+            >
+                <ChevronLeft size={22} strokeWidth={2} />
+            </button>
+            <h1 className="text-[17px] font-semibold text-[#1D1D1F]">Checkout</h1>
+            <div className="w-10" />
+        </div>
+
+        <div className="px-5 space-y-6">
+
+            {/* 1. CARD DE RESUMO */}
+            <section className="bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
+                <div className="p-5 bg-gray-50/50 border-b border-gray-100 flex items-start gap-4">
+                    <div className="w-12 h-12 bg-[#40BB43]/10 text-[#40BB43] rounded-xl flex items-center justify-center shrink-0">
+                        <Ticket size={24} strokeWidth={2} />
                     </div>
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${metodo === 'cartao' ? 'border-[#40BB43]' : 'border-gray-300'}`}>
-                        {metodo === 'cartao' && <div className="w-2.5 h-2.5 rounded-full bg-[#40BB43]" />}
+                    <div className="flex-1">
+                        <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Evento</span>
+                        <h2 className="text-[16px] font-semibold text-[#1D1D1F] leading-tight mt-0.5">Skipow Sunset Festival</h2>
+                        <div className="flex items-center gap-3 mt-1.5">
+                            <div className="flex items-center gap-1 text-gray-500">
+                                <Calendar size={12} />
+                                <span className="text-[12px] font-medium">Hoje</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-gray-500">
+                                <MapPin size={12} />
+                                <span className="text-[12px] font-medium">Arena</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* CAMPOS DO CARTÃO (Só aparece se selecionado) */}
-                {metodo === 'cartao' && (
-                    <div className="px-4 pb-5 pt-0 space-y-3 animate-in slide-in-from-top-2">
-                        <input type="text" placeholder="Número do Cartão" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#40BB43] focus:bg-white transition-all" />
-                        <input type="text" placeholder="Nome impresso no cartão" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#40BB43] focus:bg-white transition-all" />
-                        <div className="flex gap-3">
-                            <input type="text" placeholder="MM/AA" className="w-1/2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#40BB43] focus:bg-white transition-all" />
-                            <input type="text" placeholder="CVV" className="w-1/2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#40BB43] focus:bg-white transition-all" />
+                <div className="px-5 py-4 max-h-[240px] overflow-y-auto">
+                    <div className="flex items-center gap-2 mb-3">
+                        <ShoppingBag size={14} className="text-gray-400" />
+                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">Itens do Pedido</span>
+                    </div>
+                    <div className="space-y-3">
+                        {itens.map((item, index) => (
+                            <div key={index} className="flex justify-between items-center group">
+                                <div className="flex items-center gap-3">
+                                    <span className="flex items-center justify-center w-6 h-6 bg-gray-100 text-[11px] font-bold text-gray-600 rounded-md">
+                                        {item.quantidade}x
+                                    </span>
+                                    <span className="text-[14px] font-medium text-[#1D1D1F] group-hover:text-[#40BB43] transition-colors">
+                                        {item.nome}
+                                    </span>
+                                </div>
+                                <span className="text-[14px] font-medium text-gray-500">
+                                    R$ {(item.preco * item.quantidade).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                
+                <div className="px-5 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+                    <span className="text-[13px] font-medium text-gray-500">Total a pagar</span>
+                    <span className="text-[20px] font-bold text-[#1D1D1F]">R$ {totalFormatado}</span>
+                </div>
+            </section>
+
+            {/* 2. DADOS PESSOAIS */}
+            <section>
+                <div className="mb-4 px-1">
+                    <div className="flex items-center gap-2 mb-1">
+                        <User size={16} className="text-gray-400" />
+                        <h3 className="text-[13px] font-semibold text-gray-500 uppercase tracking-wide">Seus Dados</h3>
+                    </div>
+                    <p className="text-[13px] text-gray-400 ml-6 leading-snug">
+                        Informe seu celular para não perder suas fichas. <br/>
+                        Elas ficam vinculadas a este número.
+                    </p>
+                </div>
+                
+                <div className={`bg-white rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden transition-all duration-300 ${erroTelefone ? 'ring-2 ring-red-400 shadow-[0_0_20px_rgba(248,113,113,0.3)]' : ''}`}>
+                    {/* Celular */}
+                    <div className="p-4 border-b border-gray-100">
+                        <div className="flex items-center gap-3">
+                            <Smartphone size={20} className={erroTelefone ? "text-red-500" : "text-[#40BB43]"} />
+                            <div className="flex-1">
+                                <label className={`text-[10px] font-bold uppercase tracking-wide block mb-1 ${erroTelefone ? "text-red-500" : "text-gray-400"}`}>
+                                    Celular (Obrigatório)
+                                </label>
+                                <input 
+                                    type="tel" 
+                                    placeholder="(11) 99999-9999" 
+                                    value={telefone}
+                                    onChange={handleTelefoneChange} 
+                                    maxLength={15} // Limite de caracteres da máscara
+                                    className="w-full text-[17px] font-medium text-[#1D1D1F] placeholder:text-gray-300 outline-none bg-transparent"
+                                />
+                            </div>
+                            {erroTelefone && <AlertCircle size={20} className="text-red-500 animate-pulse" />}
                         </div>
                     </div>
-                )}
-            </div>
+
+                    {/* Opcionais */}
+                    <div className="p-4 flex flex-col gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-5 flex justify-center"><User size={18} className="text-gray-400" /></div>
+                            <input 
+                                type="text" 
+                                placeholder="Nome completo (Opcional)" 
+                                value={nome}
+                                onChange={(e) => setNome(e.target.value)}
+                                className="w-full text-[15px] font-medium text-[#1D1D1F] placeholder:text-gray-300 outline-none bg-transparent"
+                            />
+                        </div>
+                        <div className="h-px bg-gray-100 w-full ml-8" />
+                        <div className="flex items-center gap-3">
+                            <div className="w-5 flex justify-center"><Mail size={18} className="text-gray-400" /></div>
+                            <input 
+                                type="email" 
+                                placeholder="E-mail para recibo (Opcional)" 
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full text-[15px] font-medium text-[#1D1D1F] placeholder:text-gray-300 outline-none bg-transparent"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 3. PAGAMENTO */}
+            <section>
+                <div className="flex items-center gap-2 mb-3 px-1">
+                    <CreditCard size={16} className="text-gray-400" />
+                    <h3 className="text-[13px] font-semibold text-gray-500 uppercase tracking-wide">Pagamento</h3>
+                </div>
+                
+                <div className="space-y-3">
+                    {/* PIX */}
+                    <button 
+                        onClick={() => setMetodo("pix")}
+                        className={`w-full text-left relative rounded-[20px] p-4 border transition-all duration-200 ${
+                            metodo === 'pix' 
+                            ? 'bg-white border-[#40BB43] shadow-[0_0_0_1px_#40BB43]' 
+                            : 'bg-white border-transparent shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:bg-gray-50'
+                        }`}
+                    >
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${metodo === 'pix' ? 'bg-[#40BB43] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                                    <QrCode size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-[15px] font-semibold text-[#1D1D1F]">Pix Instantâneo</p>
+                                    <p className="text-[11px] font-medium text-[#40BB43]">Mais rápido</p>
+                                </div>
+                            </div>
+                            {metodo === 'pix' && <CheckCircle2 size={20} className="text-[#40BB43]" />}
+                        </div>
+
+                        {metodo === 'pix' && (
+                            <div className="mt-4 pt-4 border-t border-gray-100 animate-in fade-in slide-in-from-top-1">
+                                <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-200/60">
+                                    <div className="flex-1 min-w-0 mr-3">
+                                        <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">Código Pix</p>
+                                        <p className="text-[13px] font-mono text-gray-600 truncate select-all">{PIX_CODE}</p>
+                                    </div>
+                                    <button 
+                                        onClick={copiarPix} 
+                                        className={`shrink-0 p-2 rounded-lg transition-all ${copiado ? 'bg-[#40BB43] text-white' : 'bg-white text-[#1D1D1F] border border-gray-200'}`}
+                                    >
+                                        {copiado ? <CheckCircle2 size={18} /> : <Copy size={18} />}
+                                    </button>
+                                </div>
+                                <div className="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-gray-400">
+                                    <AlertCircle size={12} />
+                                    <span>Expira em 10 minutos</span>
+                                </div>
+                            </div>
+                        )}
+                    </button>
+
+                    {/* CARTÃO */}
+                    <button 
+                        onClick={() => setMetodo("cartao")}
+                        className={`w-full text-left relative rounded-[20px] p-4 border transition-all duration-200 ${
+                            metodo === 'cartao' 
+                            ? 'bg-white border-[#40BB43] shadow-[0_0_0_1px_#40BB43]' 
+                            : 'bg-white border-transparent shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:bg-gray-50'
+                        }`}
+                    >
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${metodo === 'cartao' ? 'bg-[#40BB43] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                                    <CreditCard size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-[15px] font-semibold text-[#1D1D1F]">Cartão de Crédito</p>
+                                    <p className="text-[11px] font-medium text-gray-400">Crédito ou Débito</p>
+                                </div>
+                            </div>
+                            {metodo === 'cartao' && <CheckCircle2 size={20} className="text-[#40BB43]" />}
+                        </div>
+
+                        {metodo === 'cartao' && (
+                            <div className="mt-4 pt-4 border-t border-gray-100 space-y-3 animate-in fade-in slide-in-from-top-1 cursor-default" onClick={(e) => e.stopPropagation()}>
+                                <div className="relative">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Número do Cartão" 
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-[14px] outline-none focus:border-[#40BB43] focus:bg-white transition-all placeholder:text-gray-400" 
+                                    />
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                        <CreditCard size={18} />
+                                    </div>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    placeholder="Nome impresso no cartão" 
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#40BB43] focus:bg-white transition-all placeholder:text-gray-400" 
+                                />
+                                <div className="flex gap-3">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Validade (MM/AA)" 
+                                        className="w-1/2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#40BB43] focus:bg-white transition-all placeholder:text-gray-400" 
+                                    />
+                                    <input 
+                                        type="text" 
+                                        placeholder="CVV" 
+                                        maxLength={4}
+                                        className="w-1/2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#40BB43] focus:bg-white transition-all placeholder:text-gray-400" 
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </button>
+                </div>
+            </section>
+
         </div>
 
-        {/* BOTÃO FINALIZAR */}
-        <button 
-            onClick={handlePagar}
-            className="w-full bg-[#40BB43] hover:bg-[#36a539] text-white font-bold rounded-[20px] py-4 text-[18px] shadow-lg shadow-green-200 transition-transform active:scale-[0.98]"
-        >
-            {metodo === 'pix' ? 'Já fiz o pagamento' : 'Pagar Agora'}
-        </button>
+        {/* FOOTER FIXO */}
+        <div className="fixed bottom-0 left-0 w-full bg-white/80 backdrop-blur-xl border-t border-gray-200 p-5 pb-8 z-40">
+            <div className="w-full max-w-md mx-auto">
+                <button 
+                    onClick={handlePagar}
+                    className="w-full h-14 bg-[#40BB43] hover:bg-[#36a539] text-white font-bold rounded-2xl text-[17px] shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-[0.98]"
+                >
+                    <span>Pagar R$ {totalFormatado}</span>
+                </button>
+            </div>
+        </div>
 
       </div>
     </main>

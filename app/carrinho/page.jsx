@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Poppins } from 'next/font/google';
+import { ChevronLeft } from "lucide-react"; // Importando o ícone correto
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700', '800'],
@@ -62,7 +63,9 @@ export default function CarrinhoPage() {
       alert("Seu carrinho está vazio.");
       return;
     }
-    router.push("/cadastro");
+    
+    // Redireciona direto para o pagamento
+    router.push("/pagamento");
   };
 
   return (
@@ -72,12 +75,12 @@ export default function CarrinhoPage() {
         {/* HEADER */}
         <header className="pt-6 mb-4 flex items-center justify-between">
           
-          {/* BOTÃO VOLTAR (Limpo, vai para o Cardápio) */}
+          {/* BOTÃO VOLTAR (Estilo atualizado com Chevron) */}
           <button
             onClick={() => router.push('/cardapio')}
-            className="w-11 h-11 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors border border-gray-50"
+            className="w-10 h-10 rounded-full bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)] flex items-center justify-center text-gray-900 hover:bg-gray-50 transition-transform active:scale-95"
           >
-            <span className="text-2xl font-bold text-gray-900 pb-1">←</span>
+            <ChevronLeft size={24} strokeWidth={2.5} className="-ml-0.5" />
           </button>
 
           <div className="ml-auto flex flex-col items-end text-right">
@@ -89,7 +92,7 @@ export default function CarrinhoPage() {
             </p>
           </div>
 
-          <div className="w-11 h-11 hidden sm:block" />
+          <div className="w-10 h-10 hidden sm:block" />
         </header>
 
         {/* SLOGAN */}

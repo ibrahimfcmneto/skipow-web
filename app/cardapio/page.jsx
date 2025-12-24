@@ -63,15 +63,23 @@ export default function CardapioPage() {
   const [modalAberto, setModalAberto] = useState(false);
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [quantidade, setQuantidade] = useState(1);
-  // Estado para a quantidade de itens no carrinho
   const [cartCount, setCartCount] = useState(0);
+  
+  // NOVO: Estado para armazenar o nome do evento
+  const [nomeEvento, setNomeEvento] = useState("");
 
-  // Carrega a quantidade do carrinho ao montar o componente
+  // Carrega dados iniciais (Carrinho e Nome do Evento)
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // 1. Recuperar carrinho
       const carrinhoAtual = JSON.parse(localStorage.getItem("skipow_carrinho") || "[]");
       const count = carrinhoAtual.reduce((acc, item) => acc + item.quantidade, 0);
       setCartCount(count);
+
+      // 2. Recuperar nome do evento (Lógica: tenta pegar do localStorage, senão usa um padrão)
+      // Quando fizermos a página de seleção, salvaremos com a chave "skipow_nome_evento"
+      const eventoSalvo = localStorage.getItem("skipow_nome_evento");
+      setNomeEvento(eventoSalvo || "Festa Universitária"); 
     }
   }, []);
 
@@ -91,8 +99,6 @@ export default function CardapioPage() {
       preco: produtoSelecionado.preco,
       quantidade: quantidade,
       imagem: produtoSelecionado.imagem,
-      
-      // DADOS OCULTOS
       isCombo: produtoSelecionado.isCombo || false,
       comboQtd: produtoSelecionado.comboQtd || 1,
       comboItemName: produtoSelecionado.comboItemName || "",
@@ -114,7 +120,6 @@ export default function CardapioPage() {
 
       localStorage.setItem("skipow_carrinho", JSON.stringify(carrinhoAtual));
       
-      // Atualiza o contador
       const count = carrinhoAtual.reduce((acc, item) => acc + item.quantidade, 0);
       setCartCount(count);
     }
@@ -148,10 +153,17 @@ export default function CardapioPage() {
       <div className="w-full max-w-md px-5 pb-10">
         
         {/* HEADER */}
-        <header className="pt-6 mb-5 pb-4 border-b-2 border-gray-200 flex items-center justify-between">
-          <Image src="/logo-skipow.png" alt="Skipow" width={120} height={36} />
+        <header className="pt-6 mb-2 pb-4 border-b border-gray-100 flex items-center justify-between">
+          <Image 
+            src="/logo-skipow.png" 
+            alt="Skipow" 
+            width={120} 
+            height={36} 
+            className="cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => router.push("/eventos")} 
+          />
           
-          <button onClick={() => router.push("/fichas")} className="bg-white shadow-md px-4 py-2 rounded-xl text-sm font-semibold text-gray-900 transition-transform active:scale-95">
+          <button onClick={() => router.push("/fichas")} className="bg-white shadow-sm border border-gray-100 px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-900 transition-transform active:scale-95">
             Minhas Fichas
           </button>
           
@@ -160,7 +172,6 @@ export default function CardapioPage() {
               <Image src="/avatar.png" alt="Avatar" fill className="rounded-full object-cover border border-gray-100" />
             </div>
             
-            {/* Ícone do Carrinho com Badge */}
             <button onClick={() => router.push("/carrinho")} className="relative text-gray-900 hover:text-[#40BB43] transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="21" r="1"></circle>
@@ -168,7 +179,6 @@ export default function CardapioPage() {
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
               </svg>
               
-              {/* Badge de Notificação (AGORA VERDE SKIPOW) */}
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-[#40BB43] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] flex justify-center items-center">
                   {cartCount}
@@ -177,6 +187,16 @@ export default function CardapioPage() {
             </button>
           </div>
         </header>
+
+        {/* --- NOVO: IDENTIFICAÇÃO DO EVENTO --- */}
+        <div className="flex justify-center mb-5">
+           <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 px-4 py-1.5 rounded-full shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-[#40BB43] animate-pulse"></span>
+              <p className="text-sm text-gray-600 font-medium">
+                Você está em: <span className="text-gray-900 font-bold">{nomeEvento}</span>
+              </p>
+           </div>
+        </div>
 
         {/* BUSCA */}
         <div className="relative mb-6">

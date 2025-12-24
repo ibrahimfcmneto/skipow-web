@@ -1,8 +1,9 @@
+// app/eventos/page.jsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image"; // Necessário para Logo e Avatar
+import Image from "next/image"; 
 import { Poppins } from "next/font/google";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, CreditCard, QrCode, Beer, MapPin, Calendar } from "lucide-react";
@@ -156,14 +157,22 @@ export default function SelectEventPage() {
   const router = useRouter();
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(true);
 
+  // --- NOVA FUNÇÃO: SALVAR E NAVEGAR ---
+  function selecionarEvento(nomeDoEvento) {
+    if (typeof window !== "undefined") {
+      // Salva o título do evento no localStorage
+      localStorage.setItem("skipow_nome_evento", nomeDoEvento);
+    }
+    // Navega para o cardápio
+    router.push("/cardapio");
+  }
+
   return (
     <main className={`${poppins.className} min-h-screen bg-[#FAFAFA] flex justify-center`}>
       <div className="w-full max-w-md bg-white min-h-screen shadow-xl shadow-gray-200/50 relative pb-24">
         
-        {/* === HEADER UNIFICADO (Igual ao Cardápio) === */}
-        {/* Adicionei 'px-6 bg-white sticky top-0 z-20' para garantir que fique fixo e com espaçamento correto nesta tela */}
+        {/* === HEADER UNIFICADO === */}
         <header className="pt-6 mb-5 px-6 flex items-center justify-between bg-white sticky top-0 z-20 pb-4 shadow-sm border-b border-gray-50">
-          {/* Logo */}
           <Image 
             src="/logo-skipow.png" 
             alt="Skipow" 
@@ -172,7 +181,6 @@ export default function SelectEventPage() {
             className="object-contain"
           />
 
-          {/* Botão Minhas Fichas */}
           <button 
             onClick={() => router.push("/fichas")} 
             className="hidden sm:block bg-white shadow-sm border border-gray-100 px-3 py-1.5 rounded-xl text-xs font-bold text-gray-900 transition-transform active:scale-95"
@@ -181,7 +189,6 @@ export default function SelectEventPage() {
           </button>
 
           <div className="flex items-center gap-4">
-            {/* Avatar */}
             <div 
               onClick={() => router.push("/perfil")} 
               className="relative w-9 h-9 cursor-pointer hover:opacity-80 transition-opacity"
@@ -194,7 +201,6 @@ export default function SelectEventPage() {
               />
             </div>
 
-            {/* Carrinho */}
             <button 
               onClick={() => router.push("/carrinho")} 
               className="relative text-gray-900 hover:text-[#40BB43] transition-colors"
@@ -204,7 +210,7 @@ export default function SelectEventPage() {
           </div>
         </header>
 
-        {/* Título da Seção (Já que removemos do header antigo) */}
+        {/* Título da Seção */}
         <div className="px-6 mb-4 mt-2">
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">
                 Selecione o evento
@@ -217,7 +223,8 @@ export default function SelectEventPage() {
             <motion.div 
               key={evt.id}
               whileTap={{ scale: 0.97 }}
-              onClick={() => router.push('/cardapio')} 
+              // AQUI FOI A MUDANÇA: Agora chama a função que salva o nome
+              onClick={() => selecionarEvento(evt.title)} 
               className="group relative h-56 w-full rounded-[32px] overflow-hidden cursor-pointer shadow-[0_15px_30px_-10px_rgba(0,0,0,0.1)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] transition-all duration-300"
             >
               <div className="absolute inset-0">
