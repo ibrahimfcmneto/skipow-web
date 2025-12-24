@@ -75,7 +75,7 @@ export default function CadastroPage() {
                 type="submit"
                 className="w-full bg-[#40BB43] hover:bg-[#36a539] text-white font-bold rounded-[20px] py-4 text-[18px] shadow-lg shadow-green-200 transition-transform active:scale-[0.98]"
             >
-                Continuar para pagamento
+                Criar conta
             </button>
           </div>
 
