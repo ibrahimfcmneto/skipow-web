@@ -12,7 +12,10 @@ const poppins = Poppins({
 
 export default function LerQrCodePage() {
   const router = useRouter();
-  const videoRef = useRef(null);
+  
+  // CORREÇÃO AQUI: Tipando o useRef explicitamente como um elemento de vídeo HTML
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
   const [permissaoErro, setPermissaoErro] = useState(false);
 
   // Iniciar Câmera ao carregar a página
@@ -36,19 +39,19 @@ export default function LerQrCodePage() {
 
     // Limpeza: Parar a câmera ao sair da página
     return () => {
+      // Verifica se a referência e o srcObject existem antes de tentar parar
       if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject;
+        // CORREÇÃO AQUI: Dizemos ao TS que srcObject é um MediaStream
+        const stream = videoRef.current.srcObject as MediaStream;
         const tracks = stream.getTracks();
         tracks.forEach(track => track.stop());
       }
     };
   }, []);
 
-  // --- FUNÇÃO CORRIGIDA ---
+  // Simulação de leitura bem-sucedida
   const simularLeitura = () => {
-    // Simula um delay de processamento de 300ms
     setTimeout(() => {
-      // Redireciona para a página de SUCESSO (Tela Verde)
       router.push("/bartender/validado");
     }, 300);
   };
@@ -90,22 +93,17 @@ export default function LerQrCodePage() {
       </div>
 
       {/* 4. MOLDURA DE ESCANEAMENTO (OVERLAY) */}
-      {/* Criamos uma div central e usamos bordas nos cantos para simular a mira */}
       <div 
         className="relative z-10 w-[280px] h-[280px] cursor-pointer"
-        onClick={simularLeitura} // Clique na área para simular sucesso e ir para validação
+        onClick={simularLeitura} 
       >
         {/* Cantos Verdes */}
-        {/* Top Left */}
         <div className="absolute top-0 left-0 w-12 h-12 border-l-4 border-t-4 border-[#40BB43] rounded-tl-xl shadow-[0_0_15px_rgba(64,187,67,0.5)]" />
-        {/* Top Right */}
         <div className="absolute top-0 right-0 w-12 h-12 border-r-4 border-t-4 border-[#40BB43] rounded-tr-xl shadow-[0_0_15px_rgba(64,187,67,0.5)]" />
-        {/* Bottom Left */}
         <div className="absolute bottom-0 left-0 w-12 h-12 border-l-4 border-b-4 border-[#40BB43] rounded-bl-xl shadow-[0_0_15px_rgba(64,187,67,0.5)]" />
-        {/* Bottom Right */}
         <div className="absolute bottom-0 right-0 w-12 h-12 border-r-4 border-b-4 border-[#40BB43] rounded-br-xl shadow-[0_0_15px_rgba(64,187,67,0.5)]" />
 
-        {/* Linha de Scan (Animação opcional para dar vida) */}
+        {/* Linha de Scan */}
         <div className="absolute w-full h-[2px] bg-[#40BB43]/80 top-0 animate-[scan_2s_ease-in-out_infinite] shadow-[0_0_10px_#40BB43]" />
       </div>
 
@@ -114,7 +112,6 @@ export default function LerQrCodePage() {
         Aponte para o código QR
       </p>
 
-      {/* Estilo da animação de scan */}
       <style jsx global>{`
         @keyframes scan {
           0% { top: 10%; opacity: 0; }
