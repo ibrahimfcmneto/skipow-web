@@ -14,8 +14,7 @@ import {
   ShieldCheck, 
   CheckCircle2, 
   Zap,
-  Sparkles, 
-  LucideIcon 
+  Sparkles 
 } from "lucide-react";
 import { useRef } from "react";
 
@@ -29,11 +28,7 @@ const poppins = Poppins({
 // --- COMPONENTES REUTILIZÁVEIS ---
 
 // Componente de Métrica
-interface MetricItemProps {
-  value: string;
-  label: string;
-}
-const MetricItem = ({ value, label }: MetricItemProps) => (
+const MetricItem = ({ value, label }) => (
   <div className="flex flex-col items-center p-4">
     <span className="text-[36px] md:text-[48px] font-extrabold text-white mb-2 leading-none tracking-tight">{value}</span>
     <span className="text-[14px] font-medium text-white/70 uppercase tracking-wider text-center">{label}</span>
@@ -41,12 +36,7 @@ const MetricItem = ({ value, label }: MetricItemProps) => (
 );
 
 // Componente de Benefício
-interface BenefitCardProps {
-  icon: LucideIcon;
-  title: string;
-  desc: string;
-}
-const BenefitCard = ({ icon: Icon, title, desc }: BenefitCardProps) => (
+const BenefitCard = ({ icon: Icon, title, desc }) => (
   <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
     <div className="w-14 h-14 rounded-2xl bg-[#40BB43]/10 text-[#40BB43] flex items-center justify-center mb-6">
       <Icon size={28} strokeWidth={2} />
@@ -59,7 +49,7 @@ const BenefitCard = ({ icon: Icon, title, desc }: BenefitCardProps) => (
 // --- PÁGINA PRINCIPAL ---
 
 export default function LandingPage() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"]
@@ -72,9 +62,8 @@ export default function LandingPage() {
       
       {/* NAVBAR */}
       <nav className="fixed w-full top-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-20 flex items-center justify-between">
-            {/* Logo - Ajustada largura para mobile */}
-            <div className="relative w-24 md:w-32 h-10 cursor-pointer shrink-0">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div className="relative w-32 h-10 cursor-pointer">
                 <Image src="/logo_skipow_oficial_sem_fundo-removebg-preview.png" alt="Skipow" fill className="object-contain" priority />
             </div>
             
@@ -84,19 +73,18 @@ export default function LandingPage() {
                 <Link href="/ajuda" className="text-sm font-medium text-gray-600 hover:text-[#40BB43] transition-colors">Ajuda</Link>
             </div>
 
-            <div className="flex gap-2 md:gap-3 items-center">
-                {/* --- BOTÃO LOGIN BARTENDER (Visível em Mobile) --- */}
-                {/* Removi o 'hidden' e ajustei px/py/text para mobile e desktop */}
-                <Link href="/bartender/login">
-                    <button className="px-3 py-2 text-xs md:px-5 md:py-2.5 md:text-sm font-bold text-gray-600 border border-gray-200 rounded-full hover:border-[#40BB43] hover:text-[#40BB43] transition-all whitespace-nowrap">
-                        Login Staff
+            <div className="flex gap-3">
+                {/* --- BOTÃO LOGIN BARTENDER --- */}
+                <Link href="/bartender/login" className="hidden sm:block">
+                    <button className="px-5 py-2.5 text-sm font-bold text-gray-600 border border-gray-200 rounded-full hover:border-[#40BB43] hover:text-[#40BB43] transition-all">
+                        Login Bartender
                     </button>
                 </Link>
                 
                 {/* --- BOTÃO CRIAR EVENTO --- */}
                 <Link href="/organizador/login">
-                    <button className="px-3 py-2 text-xs md:px-6 md:py-2.5 bg-[#40BB43] hover:bg-[#36a539] text-white md:text-sm font-bold rounded-full shadow-lg shadow-green-200 transition-all active:scale-95 whitespace-nowrap">
-                        Criar Evento
+                    <button className="px-6 py-2.5 bg-[#40BB43] hover:bg-[#36a539] text-white text-sm font-bold rounded-full shadow-lg shadow-green-200 transition-all active:scale-95">
+                        Criar Evento Grátis
                     </button>
                 </Link>
             </div>
@@ -116,12 +104,12 @@ export default function LandingPage() {
                 transition={{ duration: 0.8 }}
                 className="max-w-4xl mx-auto"
             >
-              <h1 className="text-[40px] md:text-[76px] leading-[1.05] font-bold tracking-tight mb-8 text-[#1D1D1F]">
+              <h1 className="text-[48px] md:text-[76px] leading-[1.05] font-bold tracking-tight mb-8 text-[#1D1D1F]">
                   Menos fila. <br />
                   <span className="text-[#40BB43]">Mais festa.</span>
               </h1>
 
-                <p className="text-[16px] md:text-[22px] text-gray-500 font-medium leading-relaxed max-w-2xl mx-auto mb-10">
+                <p className="text-[18px] md:text-[22px] text-gray-500 font-medium leading-relaxed max-w-2xl mx-auto mb-10">
                     Compre sua bebida em segundos pelo celular. <br className="hidden md:block"/>
                     Retire no bar com QR Code e aproveite o momento.
                 </p>
