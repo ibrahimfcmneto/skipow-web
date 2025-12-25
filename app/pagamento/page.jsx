@@ -17,7 +17,8 @@ import {
   Ticket, 
   CheckCircle2, 
   AlertCircle,
-  ShoppingBag
+  ShoppingBag,
+  Lock // Adicionado o Lock para a microcopy
 } from "lucide-react";
 
 const poppins = Poppins({
@@ -38,7 +39,7 @@ export default function PagamentoPage() {
 
   // Estado para controlar a notificação de erro
   const [erroTelefone, setErroTelefone] = useState(false);
-  const [mensagemErro, setMensagemErro] = useState(""); // Nova variável para mensagem dinâmica
+  const [mensagemErro, setMensagemErro] = useState(""); 
 
   const PIX_CODE = "00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-4266141740005204000053039865802BR5913Skipow Eventos6008Sao Paulo62070503***6304E2CA";
 
@@ -91,24 +92,20 @@ export default function PagamentoPage() {
   };
 
   const handlePagar = () => {
-    // 1. Limpa a formatação para contar apenas os números
     const numerosApenas = telefone.replace(/\D/g, "");
 
-    // 2. Verifica se está vazio
     if (!numerosApenas) {
       setMensagemErro("Telefone obrigatório");
       dispararErro();
       return;
     }
 
-    // 3. Verifica se tem menos de 11 dígitos (DDD + 9 números)
     if (numerosApenas.length < 11) {
       setMensagemErro("Número incompleto");
       dispararErro();
       return;
     }
 
-    // Sucesso: Salva e prossegue
     if (typeof window !== "undefined") {
         localStorage.setItem("skipow_user_data", JSON.stringify({ 
             nome: nome, 
@@ -121,7 +118,6 @@ export default function PagamentoPage() {
     router.push("/pagamento/concluido");
   };
 
-  // Função auxiliar para mostrar o erro
   function dispararErro() {
     setErroTelefone(true);
     setTimeout(() => setErroTelefone(false), 4000);
@@ -130,7 +126,8 @@ export default function PagamentoPage() {
 
   return (
     <main className={`min-h-screen bg-[#F2F2F7] flex justify-center ${poppins.className} text-[#1D1D1F]`}>
-      <div className="w-full max-w-md pb-40 relative">
+      <div className="w-full max-w-md pb-48 relative"> 
+        {/* Aumentei o padding-bottom (pb-48) para o footer não cobrir o conteúdo */}
         
         {/* --- NOTIFICAÇÃO DE ERRO --- */}
         {erroTelefone && (
@@ -242,7 +239,7 @@ export default function PagamentoPage() {
                                     placeholder="(11) 99999-9999" 
                                     value={telefone}
                                     onChange={handleTelefoneChange} 
-                                    maxLength={15} // Limite de caracteres da máscara
+                                    maxLength={15} 
                                     className="w-full text-[17px] font-medium text-[#1D1D1F] placeholder:text-gray-300 outline-none bg-transparent"
                                 />
                             </div>
@@ -279,9 +276,17 @@ export default function PagamentoPage() {
 
             {/* 3. PAGAMENTO */}
             <section>
+                {/* Cabeçalho da Seção */}
                 <div className="flex items-center gap-2 mb-3 px-1">
                     <CreditCard size={16} className="text-gray-400" />
                     <h3 className="text-[13px] font-semibold text-gray-500 uppercase tracking-wide">Pagamento</h3>
+                </div>
+
+                {/* Microcopy Alinhada (Adicionei o px-1) */}
+                <div className="flex items-center justify-start gap-1.5 mt-3 opacity-80 px-1">
+                    <p className="text-[13px] text-gray-500 font-medium text-left">
+                        Após o pagamento, suas fichas serão liberadas automaticamente.
+                    </p>
                 </div>
                 
                 <div className="space-y-3">
@@ -390,7 +395,7 @@ export default function PagamentoPage() {
         </div>
 
         {/* FOOTER FIXO */}
-        <div className="fixed bottom-0 left-0 w-full bg-white/80 backdrop-blur-xl border-t border-gray-200 p-5 pb-8 z-40">
+        <div className="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-xl border-t border-gray-200 p-5 z-40">
             <div className="w-full max-w-md mx-auto">
                 <button 
                     onClick={handlePagar}
