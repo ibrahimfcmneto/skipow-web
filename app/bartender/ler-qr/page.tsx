@@ -13,17 +13,16 @@ const poppins = Poppins({
 export default function LerQrCodePage() {
   const router = useRouter();
   
-  // CORREÇÃO AQUI: Tipando o useRef explicitamente como um elemento de vídeo HTML
+  // CORREÇÃO: Tipando explicitamente como elemento de Vídeo HTML
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const [permissaoErro, setPermissaoErro] = useState(false);
 
-  // Iniciar Câmera ao carregar a página
   useEffect(() => {
     const startCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "environment" } // Prioriza câmera traseira
+          video: { facingMode: "environment" } 
         });
         
         if (videoRef.current) {
@@ -37,11 +36,10 @@ export default function LerQrCodePage() {
 
     startCamera();
 
-    // Limpeza: Parar a câmera ao sair da página
     return () => {
-      // Verifica se a referência e o srcObject existem antes de tentar parar
+      // Verifica se a referência e o srcObject existem
       if (videoRef.current && videoRef.current.srcObject) {
-        // CORREÇÃO AQUI: Dizemos ao TS que srcObject é um MediaStream
+        // CORREÇÃO: Força o tipo MediaStream para o TS entender
         const stream = videoRef.current.srcObject as MediaStream;
         const tracks = stream.getTracks();
         tracks.forEach(track => track.stop());
@@ -49,7 +47,6 @@ export default function LerQrCodePage() {
     };
   }, []);
 
-  // Simulação de leitura bem-sucedida
   const simularLeitura = () => {
     setTimeout(() => {
       router.push("/bartender/validado");
@@ -59,7 +56,6 @@ export default function LerQrCodePage() {
   return (
     <main className={`fixed inset-0 bg-black flex flex-col items-center justify-center ${poppins.className}`}>
       
-      {/* 1. HEADER / VOLTAR */}
       <div className="absolute top-0 left-0 w-full p-6 z-20 flex items-center">
         <button 
           onClick={() => router.back()}
@@ -69,14 +65,12 @@ export default function LerQrCodePage() {
         </button>
       </div>
 
-      {/* 2. TEXTO INSTRUÇÃO */}
       <div className="absolute top-24 w-full text-center z-20">
         <h2 className="text-white text-[18px] font-medium tracking-wide drop-shadow-md">
           Escaneie a ficha
         </h2>
       </div>
 
-      {/* 3. VÍDEO (CÂMERA) */}
       <div className="absolute inset-0 z-0">
         {!permissaoErro ? (
           <video 
@@ -92,22 +86,18 @@ export default function LerQrCodePage() {
         )}
       </div>
 
-      {/* 4. MOLDURA DE ESCANEAMENTO (OVERLAY) */}
       <div 
         className="relative z-10 w-[280px] h-[280px] cursor-pointer"
         onClick={simularLeitura} 
       >
-        {/* Cantos Verdes */}
         <div className="absolute top-0 left-0 w-12 h-12 border-l-4 border-t-4 border-[#40BB43] rounded-tl-xl shadow-[0_0_15px_rgba(64,187,67,0.5)]" />
         <div className="absolute top-0 right-0 w-12 h-12 border-r-4 border-t-4 border-[#40BB43] rounded-tr-xl shadow-[0_0_15px_rgba(64,187,67,0.5)]" />
         <div className="absolute bottom-0 left-0 w-12 h-12 border-l-4 border-b-4 border-[#40BB43] rounded-bl-xl shadow-[0_0_15px_rgba(64,187,67,0.5)]" />
         <div className="absolute bottom-0 right-0 w-12 h-12 border-r-4 border-b-4 border-[#40BB43] rounded-br-xl shadow-[0_0_15px_rgba(64,187,67,0.5)]" />
 
-        {/* Linha de Scan */}
         <div className="absolute w-full h-[2px] bg-[#40BB43]/80 top-0 animate-[scan_2s_ease-in-out_infinite] shadow-[0_0_10px_#40BB43]" />
       </div>
 
-      {/* Dica no rodapé */}
       <p className="absolute bottom-10 text-white/60 text-sm font-medium z-20">
         Aponte para o código QR
       </p>

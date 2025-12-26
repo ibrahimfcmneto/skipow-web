@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, FormEvent } from "react"; // Adicionei FormEvent
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Poppins } from 'next/font/google';
@@ -15,25 +15,23 @@ const poppins = Poppins({
 export default function BartenderLoginPage() {
   const router = useRouter();
   
-  // Estados para os inputs
   const [codigoEvento, setCodigoEvento] = useState("");
   const [pinBar, setPinBar] = useState("");
   const [local, setLocal] = useState("Bar de corote"); 
 
-  const handleLogin = (e) => {
+  // CORREÇÃO AQUI: Tipando o evento 'e' como FormEvent
+  const handleLogin = (e: FormEvent) => {
     e.preventDefault();
     
-    // Simulação de validação (futuramente aqui entra a API)
+    // Simulação de validação
     console.log("Login realizado:", { codigoEvento, pinBar, local });
     
-    // REDIRECIONAMENTO CORRIGIDO:
     router.push("/bartender/scanner"); 
   };
 
   return (
     <main className={`min-h-screen bg-white flex flex-col items-center relative ${poppins.className} text-[#1D1D1F]`}>
       
-      {/* 1. LOGO E TÍTULOS */}
       <div className="w-full max-w-md px-8 pt-12 flex flex-col items-center text-center z-10">
         <div className="relative w-40 h-12 mb-6">
           <Image 
@@ -54,11 +52,9 @@ export default function BartenderLoginPage() {
         </p>
       </div>
 
-      {/* 2. FORMULÁRIO */}
       <div className="w-full max-w-md px-8 mt-8 z-10 pb-40">
         <form onSubmit={handleLogin} className="space-y-5">
           
-          {/* Input: Código do Evento */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest pl-1">
               Codigo do evento
@@ -72,7 +68,6 @@ export default function BartenderLoginPage() {
             />
           </div>
 
-          {/* Input: PIN do Bar */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest pl-1">
               Pin do bar
@@ -86,7 +81,6 @@ export default function BartenderLoginPage() {
             />
           </div>
 
-          {/* Select: Local */}
           <div className="space-y-1.5 relative">
             <div className="flex justify-between pl-1">
                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
@@ -113,12 +107,10 @@ export default function BartenderLoginPage() {
             </div>
           </div>
 
-          {/* Helper Text */}
           <p className="text-center text-[12px] text-gray-400 pt-2">
             Códigos fornecidos pelo organizador do evento.
           </p>
 
-          {/* Botão Entrar */}
           <button 
             type="submit"
             className="w-full h-14 bg-[#40BB43] hover:bg-[#36a539] text-white font-bold text-[18px] rounded-xl shadow-lg shadow-green-200 transition-transform active:scale-[0.98] mt-2"
@@ -129,7 +121,6 @@ export default function BartenderLoginPage() {
         </form>
       </div>
 
-      {/* 3. RODAPÉ CURVO (SVG) */}
       <div className="absolute bottom-0 left-0 w-full h-48 overflow-hidden z-0 flex items-end justify-center">
          <div className="absolute bottom-0 w-full h-full">
             <svg 
