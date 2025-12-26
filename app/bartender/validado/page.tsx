@@ -48,7 +48,7 @@ export default function ValidadoPage() {
 
         {/* Nome do Produto */}
         <h2 className="text-white text-[42px] font-medium tracking-tight mb-20 text-center leading-tight">
-          Red Bull
+          Nome Produto
         </h2>
 
         {/* Detalhes (Fundo Inferior) */}
