@@ -14,18 +14,28 @@ export default function ValidadoPage() {
   const router = useRouter();
   const [horaAtual, setHoraAtual] = useState("");
 
-  // Pega a hora real do momento da validação
+  // Função para voltar ao scanner
+  const handleProximo = () => {
+    // Certifique-se de que este é o caminho correto da sua página de câmera
+    router.replace("/bartender/scanner"); 
+  };
+
   useEffect(() => {
+    // 1. Define a hora atual
     const now = new Date();
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     setHoraAtual(`${hours}:${minutes}`);
-  }, []);
 
-  // Função para voltar ao scanner e ler o próximo
-  const handleProximo = () => {
-    router.replace("/bartender/scanner"); // ou /bartender/ler-qr se quiser abrir a camera direto
-  };
+    // 2. Cria o temporizador para voltar automaticamente
+    // 1500ms (1.5 segundos) é um bom tempo: dá para ler e não demora muito
+    const timer = setTimeout(() => {
+      handleProximo();
+    }, 1500);
+
+    // Limpa o timer se o usuário sair da tela ou clicar antes do tempo (evita erros)
+    return () => clearTimeout(timer);
+  }, []); // Array vazio garante que rode apenas ao montar a tela
 
   return (
     <main 
@@ -33,6 +43,9 @@ export default function ValidadoPage() {
       className={`min-h-screen bg-[#40BB43] flex flex-col items-center justify-center relative cursor-pointer ${poppins.className}`}
     >
       
+      {/* Barra de progresso visual (Opcional - dá a sensação de agilidade) */}
+      <div className="absolute top-0 left-0 h-2 bg-white/30 w-full animate-[shrink_1.5s_linear_forwards]" style={{ animationDuration: '1500ms' }} />
+
       {/* Conteúdo Centralizado */}
       <div className="flex flex-col items-center animate-in zoom-in duration-300">
         
@@ -63,10 +76,18 @@ export default function ValidadoPage() {
 
       </div>
 
-      {/* Dica de usabilidade (Opcional, mas bom para o bartender saber) */}
+      {/* Dica atualizada */}
       <div className="absolute bottom-8 text-white/60 text-sm font-medium">
-        Toque na tela para validar o próximo
+        Redirecionando... (ou toque para acelerar)
       </div>
+
+      {/* Adicione isso no seu globals.css para a barra de progresso funcionar, ou remova a div da barra se não quiser */}
+      <style jsx global>{`
+        @keyframes shrink {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
+      `}</style>
 
     </main>
   );
