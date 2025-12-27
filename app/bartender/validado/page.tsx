@@ -14,28 +14,28 @@ export default function ValidadoPage() {
   const router = useRouter();
   const [horaAtual, setHoraAtual] = useState("");
 
-  // Função para voltar ao scanner
+  // Função para voltar ao scanner 'ler-qr'
   const handleProximo = () => {
-    // Certifique-se de que este é o caminho correto da sua página de câmera
-    router.replace("/bartender/scanner"); 
+    // ATENÇÃO: Ajustei para o caminho que você pediu.
+    // Se a página "ler-qr" estiver na raiz, use apenas "/ler-qr"
+    router.replace("/bartender/ler-qr"); 
   };
 
   useEffect(() => {
-    // 1. Define a hora atual
+    // 1. Define a hora atual para mostrar na tela
     const now = new Date();
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     setHoraAtual(`${hours}:${minutes}`);
 
-    // 2. Cria o temporizador para voltar automaticamente
-    // 1500ms (1.5 segundos) é um bom tempo: dá para ler e não demora muito
+    // 2. Timer automático: espera 1.5s e volta para a câmera sozinho
     const timer = setTimeout(() => {
       handleProximo();
     }, 1500);
 
-    // Limpa o timer se o usuário sair da tela ou clicar antes do tempo (evita erros)
+    // Limpa o timer se o componente desmontar (previne erros)
     return () => clearTimeout(timer);
-  }, []); // Array vazio garante que rode apenas ao montar a tela
+  }, []);
 
   return (
     <main 
@@ -43,7 +43,7 @@ export default function ValidadoPage() {
       className={`min-h-screen bg-[#40BB43] flex flex-col items-center justify-center relative cursor-pointer ${poppins.className}`}
     >
       
-      {/* Barra de progresso visual (Opcional - dá a sensação de agilidade) */}
+      {/* Barra de progresso visual (mostra quanto tempo falta para voltar) */}
       <div className="absolute top-0 left-0 h-2 bg-white/30 w-full animate-[shrink_1.5s_linear_forwards]" style={{ animationDuration: '1500ms' }} />
 
       {/* Conteúdo Centralizado */}
@@ -76,12 +76,12 @@ export default function ValidadoPage() {
 
       </div>
 
-      {/* Dica atualizada */}
+      {/* Dica de usabilidade */}
       <div className="absolute bottom-8 text-white/60 text-sm font-medium">
-        Redirecionando... (ou toque para acelerar)
+        Voltando para a câmera... (toque para pular)
       </div>
 
-      {/* Adicione isso no seu globals.css para a barra de progresso funcionar, ou remova a div da barra se não quiser */}
+      {/* Estilo local para a animação da barra */}
       <style jsx global>{`
         @keyframes shrink {
           from { width: 100%; }
