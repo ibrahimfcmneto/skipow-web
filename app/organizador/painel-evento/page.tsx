@@ -238,7 +238,8 @@ export default function PainelEventoPage() {
               <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dadosHorario} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
-                      <XAxis dataKey="hora" axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 11, marginTop: 10}} dy={10} />
+                      {/* CORREÇÃO AQUI: Removido marginTop: 10, mantido dy={10} */}
+                      <XAxis dataKey="hora" axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 11}} dy={10} />
                       <YAxis hide />
                       <Tooltip cursor={{fill: '#F3F4F6', radius: 6}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 8px 20px rgba(0,0,0,0.1)', fontSize: '12px'}} />
                       <Bar dataKey="vendas" fill="#40BB43" radius={[6, 6, 0, 0]} barSize={28}>
