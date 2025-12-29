@@ -18,7 +18,6 @@ const eventos = [
     data: "20/12/25",
     status: "ATIVO",
     statusColor: "text-[#40BB43]",
-    // Caminho da imagem na pasta public
     imagem: "/De_ferias_com_a_faceca.png" 
   },
   {
@@ -96,7 +95,7 @@ export default function OrganizerDashboardPage() {
                     key={evento.id} 
                     className="bg-white p-4 rounded-[24px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.08)] border border-gray-100 flex gap-5 items-stretch hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
                 >
-                    {/* Imagem Quadrada (Agora usando Image do Next.js) */}
+                    {/* Imagem Quadrada */}
                     <div className="relative w-24 h-24 shrink-0 rounded-[18px] overflow-hidden bg-gray-200 shadow-inner">
                         <Image 
                             src={evento.imagem} 
@@ -125,8 +124,8 @@ export default function OrganizerDashboardPage() {
                             </div>
                         </div>
 
-                        {/* Botão de Ação */}
-                        <Link href={`/organizador/evento/${evento.id}`} className="mt-2">
+                        {/* Botão de Ação (ALTERADO AQUI) */}
+                        <Link href="/organizador/painel-evento" className="mt-2">
                             <button className="w-full bg-[#40BB43] hover:bg-[#36a539] text-white text-[11px] font-bold py-2 px-4 rounded-full shadow-sm shadow-green-100 uppercase tracking-wide active:scale-95 transition-all">
                                 Entrar no evento
                             </button>
