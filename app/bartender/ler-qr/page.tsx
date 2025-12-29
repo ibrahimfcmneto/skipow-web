@@ -1,163 +1,90 @@
-"use client";
+'use client'
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { Poppins } from 'next/font/google';
-import jsQR from "jsqr"; // Importando a biblioteca que instalamos
+import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
+import jsQR from "jsqr"
+import { validarFicha } from "@/app/actions/bartender" // Importamos o cérebro!
 
-const poppins = Poppins({
-  weight: ['400', '500', '600', '700'],
-  subsets: ['latin'],
-});
-
-export default function LerQrCodePage() {
-  const router = useRouter();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [permissaoErro, setPermissaoErro] = useState(false);
-  const [lendo, setLendo] = useState(true); // Controle para não ler várias vezes seguidas
-
-  // Função para processar o QR Code encontrado
-  const validarQrCode = (codigo: string) => {
-    if (!lendo) return;
-    setLendo(false); // Trava para não ler de novo
-    
-    // Feedback tátil (vibrar) se o celular suportar
-    if (navigator.vibrate) navigator.vibrate(200);
-
-    console.log("QR Code detectado:", codigo);
-    
-    // Redireciona para a página de sucesso
-    router.push("/bartender/validado");
-  };
+export default function LerQRPage() {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [lendo, setLendo] = useState(true) // Para não ler o mesmo código 10x seguidas
+  const router = useRouter()
 
   useEffect(() => {
-    let stream: MediaStream | null = null;
-    let animationFrameId: number;
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    if (!video || !canvas) return
 
-    const startCamera = async () => {
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })
+    if (!ctx) return
+
+    // Iniciar Câmera
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then((stream) => {
+        video.srcObject = stream
+        video.play()
+        requestAnimationFrame(tick)
+      })
+      .catch((err) => console.error("Erro na câmera:", err))
+
+    function tick() {
+      if (!video || !canvas || !ctx) return
+
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.height = video.videoHeight
+        canvas.width = video.videoWidth
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert",
+        })
+
+        if (code && code.data && lendo) {
+          // --- AQUI ESTA A MÁGICA ---
+          console.log("Código encontrado:", code.data)
+          verificarNoBanco(code.data) // Chama a função que fala com o banco
+        }
+      }
+      if (lendo) requestAnimationFrame(tick)
+    }
+
+    // Função que conversa com a Server Action
+    async function verificarNoBanco(codigoLido: string) {
+      setLendo(false) // Pausa a leitura para não validar 2 vezes
+
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "environment" } 
-        });
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          // Importante: garantir que o vídeo toque sem áudio para não ter bloqueio de autoplay
-          videoRef.current.setAttribute("playsinline", "true"); 
-          videoRef.current.play();
-          requestAnimationFrame(tick); // Começa o loop de escaneamento
+        // Chama o servidor (Bartender Action)
+        const resultado = await validarFicha(codigoLido)
+
+        if (resultado.sucesso) {
+          // SE O BANCO DISSE OK -> Vai para a tela verde
+          router.push(`/bartender/validado?produto=${resultado.produto}&hora=${resultado.hora}`)
+        } else {
+          // SE O BANCO DISSE ERRO -> Mostra alerta e volta a ler
+          alert(`❌ NEGADO: ${resultado.erro}\n${resultado.detalhe || ''}`)
+          setTimeout(() => setLendo(true), 2000) // Espera 2s para tentar de novo
         }
-      } catch (err) {
-        console.error("Erro ao acessar câmera:", err);
-        setPermissaoErro(true);
+      } catch (error) {
+        alert("Erro de conexão. Tente novamente.")
+        setLendo(true)
       }
-    };
+    }
 
-    // Função de Loop que verifica cada frame do vídeo
-    const tick = () => {
-      if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
-        // Cria um canvas em memória para analisar a imagem atual do vídeo
-        const canvas = document.createElement("canvas");
-        canvas.width = videoRef.current.videoWidth;
-        canvas.height = videoRef.current.videoHeight;
-        const ctx = canvas.getContext("2d");
-
-        if (ctx) {
-          ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          
-          // Tenta encontrar um QR Code na imagem
-          const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "dontInvert",
-          });
-
-          if (code) {
-            // SE ACHOU UM QR CODE
-            validarQrCode(code.data);
-            return; // Para o loop
-          }
-        }
-      }
-      // Se não achou, agenda a próxima verificação
-      animationFrameId = requestAnimationFrame(tick);
-    };
-
-    startCamera();
-
-    // Limpeza ao sair da página
-    return () => {
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [lendo, router]) // Dependências do useEffect
 
   return (
-    <main className={`fixed inset-0 bg-black flex flex-col items-center justify-center ${poppins.className}`}>
+    <div className="flex flex-col items-center justify-center h-screen bg-black text-white">
+      <h1 className="text-xl font-bold mb-4">Aponte para o QR Code</h1>
       
-      {/* 1. HEADER / VOLTAR */}
-      <div className="absolute top-0 left-0 w-full p-6 z-20 flex items-center">
-        <button 
-          onClick={() => router.back()}
-          className="w-10 h-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/60 transition-colors"
-        >
-          <ArrowLeft size={24} strokeWidth={2.5} />
-        </button>
+      {/* O vídeo fica escondido, o canvas mostra a imagem processada (opcional) ou vice-versa */}
+      <div className="relative w-full max-w-sm aspect-square overflow-hidden rounded-xl border-2 border-emerald-500">
+        <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
+        <canvas ref={canvasRef} className="hidden" /> {/* Canvas escondido, usado só pra leitura */}
       </div>
 
-      {/* 2. TEXTO INSTRUÇÃO */}
-      <div className="absolute top-24 w-full text-center z-20">
-        <h2 className="text-white text-[18px] font-medium tracking-wide drop-shadow-md">
-          Escaneie a ficha
-        </h2>
-      </div>
-
-      {/* 3. VÍDEO (CÂMERA) */}
-      <div className="absolute inset-0 z-0">
-        {!permissaoErro ? (
-          <video 
-            ref={videoRef}
-            className="w-full h-full object-cover opacity-80"
-            playsInline // Importante para iOS não abrir fullscreen
-            muted
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-900 text-gray-400 p-10 text-center">
-            <p>Não foi possível acessar a câmera. Verifique as permissões.</p>
-          </div>
-        )}
-      </div>
-
-      {/* 4. MOLDURA DE ESCANEAMENTO (OVERLAY) */}
-      {/* Mantive o clique manual como fallback caso a luz esteja ruim */}
-      <div 
-        className="relative z-10 w-[280px] h-[280px] cursor-pointer"
-        onClick={() => validarQrCode("simulacao-manual")}
-      >
-        {/* Cantos Verdes */}
-        <div className="absolute top-0 left-0 w-12 h-12 border-l-4 border-t-4 border-[#40BB43] rounded-tl-xl shadow-[0_0_15px_rgba(64,187,67,0.5)]" />
-        <div className="absolute top-0 right-0 w-12 h-12 border-r-4 border-t-4 border-[#40BB43] rounded-tr-xl shadow-[0_0_15px_rgba(64,187,67,0.5)]" />
-        <div className="absolute bottom-0 left-0 w-12 h-12 border-l-4 border-b-4 border-[#40BB43] rounded-bl-xl shadow-[0_0_15px_rgba(64,187,67,0.5)]" />
-        <div className="absolute bottom-0 right-0 w-12 h-12 border-r-4 border-b-4 border-[#40BB43] rounded-br-xl shadow-[0_0_15px_rgba(64,187,67,0.5)]" />
-
-        {/* Linha de Scan */}
-        <div className="absolute w-full h-[2px] bg-[#40BB43]/80 top-0 animate-[scan_2s_ease-in-out_infinite] shadow-[0_0_10px_#40BB43]" />
-      </div>
-
-      <p className="absolute bottom-10 text-white/60 text-sm font-medium z-20">
-        Aponte para qualquer QR Code
-      </p>
-
-      <style jsx global>{`
-        @keyframes scan {
-          0% { top: 10%; opacity: 0; }
-          50% { opacity: 1; }
-          100% { top: 90%; opacity: 0; }
-        }
-      `}</style>
-    </main>
-  );
+      <p className="mt-4 text-gray-400 text-sm">Procurando fichas...</p>
+    </div>
+  )
 }

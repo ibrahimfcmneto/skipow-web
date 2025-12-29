@@ -11,7 +11,7 @@ datasource db {
 
 model Ficha {
   id          String   @id @default(uuid()) // ID único interno
-  codigo      String   @unique              // Código legível (ex: SKP-0001) ou hash seguro
+  codigo      String   @unique              // Código legível (ex: SKP-0001)
   nomeProduto String
   imagemUrl   String?
   evento      String
