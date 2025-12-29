@@ -1,11 +1,6 @@
 'use server'
 
-import { PrismaClient } from '@prisma/client'
-
-// Evita criar múltiplas conexões no modo dev
-const globalForPrisma = global as unknown as { prisma: PrismaClient }
-export const prisma = globalForPrisma.prisma || new PrismaClient()
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+import { prisma } from "@/lib/prisma" // <--- Agora importamos do arquivo certo!
 
 export async function validarFicha(codigo: string) {
   console.log(`🔍 Verificando ficha: ${codigo}`)
