@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import jsQR from "jsqr"
-import { ArrowLeft } from "lucide-react" // Ícone da seta
+import { ArrowLeft, ScanLine } from "lucide-react" // Ícones bonitos
 import { validarFicha } from "@/app/actions/bartender"
 
 export default function LerQRPage() {
@@ -11,9 +11,8 @@ export default function LerQRPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const router = useRouter()
   
-  // Usamos Ref para o bloqueio porque é INSTANTÂNEO (State tem delay)
   const scanningLock = useRef(false) 
-  const [status, setStatus] = useState("Aponte para o QR Code")
+  const [status, setStatus] = useState("Posicione o código no centro")
 
   useEffect(() => {
     const video = videoRef.current
@@ -33,7 +32,7 @@ export default function LerQRPage() {
       })
       .catch((err) => console.error("Erro na câmera:", err))
 
-    // 2. O Loop Infinito (Tick)
+    // 2. Loop de Leitura
     function tick() {
       if (!video || !canvas || !ctx) return
       
@@ -51,6 +50,9 @@ export default function LerQRPage() {
 
           if (code && code.data) {
             scanningLock.current = true 
+            // Feedback tátil (vibração) se o celular suportar
+            if (navigator.vibrate) navigator.vibrate(50);
+            
             console.log("Código capturado:", code.data)
             verificarNoBanco(code.data)
           }
@@ -59,9 +61,9 @@ export default function LerQRPage() {
       requestAnimationFrame(tick)
     }
 
-    // 3. Função que conversa com o Servidor
+    // 3. Conversa com o Servidor
     async function verificarNoBanco(codigoLido: string) {
-      setStatus("Verificando...") 
+      setStatus("Processando...") 
 
       try {
         const resultado = await validarFicha(codigoLido)
@@ -75,9 +77,9 @@ export default function LerQRPage() {
         }
       } catch (error) {
         console.error(error)
-        alert("Erro de conexão. Tente novamente.")
+        alert("Erro de conexão.")
         scanningLock.current = false 
-        setStatus("Aponte para o QR Code")
+        setStatus("Posicione o código no centro")
       }
     }
 
@@ -91,9 +93,9 @@ export default function LerQRPage() {
   }, [router]) 
 
   return (
-    <div className="relative h-screen w-screen bg-black overflow-hidden flex flex-col items-center justify-center">
+    <div className="relative h-screen w-screen bg-black overflow-hidden flex flex-col">
       
-      {/* CAMADA 1: O Vídeo de Fundo (Ocupa tudo) */}
+      {/* VÍDEO DE FUNDO */}
       <video 
         ref={videoRef} 
         className="absolute inset-0 w-full h-full object-cover z-0" 
@@ -102,60 +104,67 @@ export default function LerQRPage() {
       />
       <canvas ref={canvasRef} className="hidden" /> 
 
-      {/* CAMADA 2: Interface e Máscara Escura */}
-      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
+      {/* INTERFACE (Z-INDEX SUPERIOR) */}
+      <div className="relative z-10 w-full h-full flex flex-col">
         
-        {/* Botão Voltar (Topo Esquerda) */}
-        <div className="absolute top-6 left-6 z-50">
+        {/* TOPO: Botão Voltar e Título */}
+        <div className="pt-12 px-6 pb-4 flex items-center w-full bg-gradient-to-b from-black/80 to-transparent">
           <button 
-            onClick={() => router.push('/bartender')} // Ajuste a rota se necessário
-            className="bg-black/40 backdrop-blur-md p-3 rounded-xl border border-white/10 active:scale-95 transition-all"
+            onClick={() => router.push('/bartender')} 
+            className="p-2 rounded-full bg-white/10 backdrop-blur-md border border-white/10 active:scale-95 transition-all mr-4"
           >
             <ArrowLeft className="text-white w-6 h-6" />
           </button>
+          <div className="flex flex-col">
+            <h1 className="text-white font-bold text-lg leading-none">Scanner</h1>
+            <p className="text-white/60 text-xs font-medium">Ler Ficha Skipow</p>
+          </div>
         </div>
 
-        {/* Texto Instrução */}
-        <p className="text-white font-medium text-lg mb-8 drop-shadow-md tracking-wide">
-            Escaneie a ficha
-        </p>
+        {/* CENTRO: Área de Foco */}
+        <div className="flex-1 flex flex-col items-center justify-center -mt-10">
+            
+            {/* Quadrado de Leitura (Aumentado para w-80 / 320px) */}
+            <div className="relative w-80 h-80 rounded-[30px] shadow-[0_0_0_9999px_rgba(0,0,0,0.85)] flex items-center justify-center overflow-hidden">
+                
+                {/* Cantos Verdes Neon (Mais finos e elegantes) */}
+                <div className="absolute top-0 left-0 w-12 h-12 border-l-[3px] border-t-[3px] border-[#40BB43] rounded-tl-[20px] m-1"></div>
+                <div className="absolute top-0 right-0 w-12 h-12 border-r-[3px] border-t-[3px] border-[#40BB43] rounded-tr-[20px] m-1"></div>
+                <div className="absolute bottom-0 left-0 w-12 h-12 border-l-[3px] border-b-[3px] border-[#40BB43] rounded-bl-[20px] m-1"></div>
+                <div className="absolute bottom-0 right-0 w-12 h-12 border-r-[3px] border-b-[3px] border-[#40BB43] rounded-br-[20px] m-1"></div>
 
-        {/* ÁREA DE ESCANEAMENTO */}
-        {/* O boxShadow aqui cria a máscara escura ao redor do quadrado transparente */}
-        <div 
-            className="relative w-72 h-72 rounded-3xl shadow-[0_0_0_9999px_rgba(0,0,0,0.8)]"
-        >
-            {/* Cantos Verdes (Brackets) */}
-            
-            {/* Canto Superior Esquerdo */}
-            <div className="absolute top-0 left-0 w-10 h-10 border-l-[4px] border-t-[4px] border-[#40BB43] rounded-tl-xl -translate-x-1 -translate-y-1"></div>
-            
-            {/* Canto Superior Direito */}
-            <div className="absolute top-0 right-0 w-10 h-10 border-r-[4px] border-t-[4px] border-[#40BB43] rounded-tr-xl translate-x-1 -translate-y-1"></div>
-            
-            {/* Canto Inferior Esquerdo */}
-            <div className="absolute bottom-0 left-0 w-10 h-10 border-l-[4px] border-b-[4px] border-[#40BB43] rounded-bl-xl -translate-x-1 translate-y-1"></div>
-            
-            {/* Canto Inferior Direito */}
-            <div className="absolute bottom-0 right-0 w-10 h-10 border-r-[4px] border-b-[4px] border-[#40BB43] rounded-br-xl translate-x-1 translate-y-1"></div>
+                {/* Laser de Escaneamento (Efeito Gradiente) */}
+                <div className="absolute w-full h-[2px] bg-gradient-to-r from-transparent via-[#40BB43] to-transparent animate-[scan_2s_ease-in-out_infinite] shadow-[0_0_15px_#40BB43]"></div>
 
-            {/* Linha de Scanner (Animação opcional para dar vida) */}
-            <div className="absolute w-full h-[2px] bg-[#40BB43]/50 animate-[scan_2s_infinite] top-0 shadow-[0_0_10px_#40BB43]"></div>
+                {/* Ícone Central Sutis (Opcional, dá um ar tech) */}
+                <ScanLine className="text-white/20 w-16 h-16 animate-pulse" strokeWidth={1} />
+            </div>
+
+            {/* Texto de Status (Logo abaixo do quadrado) */}
+            <div className="mt-8 px-5 py-2.5 bg-neutral-900/80 backdrop-blur-md rounded-full border border-white/5">
+                <p className="text-[#40BB43] font-mono text-sm font-semibold tracking-wide flex items-center gap-2">
+                   <span className="w-2 h-2 rounded-full bg-[#40BB43] animate-pulse"></span>
+                   {status}
+                </p>
+            </div>
+
         </div>
 
-        {/* Status Text (Abaixo) */}
-        <div className="absolute bottom-20 px-6 py-2 bg-black/60 backdrop-blur-sm rounded-full">
-             <p className="text-emerald-400 font-mono text-sm animate-pulse">{status}</p>
+        {/* RODAPÉ: Dica */}
+        <div className="pb-8 text-center px-10">
+            <p className="text-white/40 text-xs">
+                Mantenha a câmera estável e garanta boa iluminação.
+            </p>
         </div>
       
       </div>
 
-      {/* Animação da linha do scanner */}
+      {/* Animação CSS do Laser */}
       <style jsx>{`
         @keyframes scan {
           0% { top: 10%; opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
+          15% { opacity: 1; }
+          85% { opacity: 1; }
           100% { top: 90%; opacity: 0; }
         }
       `}</style>
