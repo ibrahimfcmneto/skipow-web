@@ -10,15 +10,14 @@ const poppins = Poppins({
   subsets: ['latin'],
 });
 
-// Criamos um componente interno para lidar com a busca de dados
 function ConteudoValidado() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // 1. Pega os dados da URL (enviados pelo scanner)
+  // Pega o nome do produto da URL
   const produto = searchParams.get('produto') || "Produto Desconhecido";
-  const horaURL = searchParams.get('hora'); // Pega a hora exata da validação
-
+  
+  // Estado para guardar a hora
   const [horaExibida, setHoraExibida] = useState("");
 
   const handleProximo = () => {
@@ -26,32 +25,34 @@ function ConteudoValidado() {
   };
 
   useEffect(() => {
-    // Se veio hora na URL usa ela, senão pega a hora de agora
-    if (horaURL) {
-      setHoraExibida(horaURL);
-    } else {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      setHoraExibida(`${hours}:${minutes}`);
-    }
+    // 1. CORREÇÃO DA HORA: Pega a hora do SEU celular/computador
+    // Isso garante que o horário esteja sempre certo para quem está usando
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('pt-BR', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+    setHoraExibida(timeString);
 
-    // Timer automático: espera 1.5s e volta
+    // 2. TEMPO DE TELA: Aumentado para 2.5 segundos (2500ms)
     const timer = setTimeout(() => {
       handleProximo();
-    }, 1500);
+    }, 2500);
 
     return () => clearTimeout(timer);
-  }, [horaURL]); // Executa quando carregar
+  }, []);
 
   return (
     <div 
-      onClick={handleProximo}
+      onClick={handleProximo} // Mantém o clique para pular
       className={`min-h-screen bg-[#40BB43] flex flex-col items-center justify-center relative cursor-pointer ${poppins.className}`}
     >
       
-      {/* Barra de progresso visual */}
-      <div className="absolute top-0 left-0 h-2 bg-white/30 w-full animate-[shrink_1.5s_linear_forwards]" style={{ animationDuration: '1500ms' }} />
+      {/* Barra de progresso visual (Ajustada para 2.5s) */}
+      <div 
+        className="absolute top-0 left-0 h-2 bg-white/30 w-full animate-[shrink_2.5s_linear_forwards]" 
+        style={{ animationDuration: '2500ms' }} 
+      />
 
       {/* Conteúdo Centralizado */}
       <div className="flex flex-col items-center animate-in zoom-in duration-300 px-4">
@@ -66,12 +67,12 @@ function ConteudoValidado() {
           VÁLIDO!
         </h1>
 
-        {/* Nome do Produto (DINÂMICO AGORA) */}
+        {/* Nome do Produto */}
         <h2 className="text-white text-[42px] font-medium tracking-tight mb-20 text-center leading-tight break-words max-w-md">
           {produto}
         </h2>
 
-        {/* Detalhes (Fundo Inferior) */}
+        {/* Detalhes */}
         <div className="text-center space-y-1 bg-white/10 p-4 rounded-xl backdrop-blur-sm">
             <p className="text-[#1D1D1F] text-[18px] font-medium">
                Horário validado: {horaExibida}
@@ -85,7 +86,7 @@ function ConteudoValidado() {
         Voltando para a câmera... (toque para pular)
       </div>
 
-      {/* Estilo local para a animação da barra */}
+      {/* Animação CSS */}
       <style jsx global>{`
         @keyframes shrink {
           from { width: 100%; }
@@ -97,7 +98,6 @@ function ConteudoValidado() {
   );
 }
 
-// Exportação Principal com Suspense (Obrigatório para usar useSearchParams)
 export default function ValidadoPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#40BB43] flex items-center justify-center text-white text-2xl font-bold">CARREGANDO...</div>}>
