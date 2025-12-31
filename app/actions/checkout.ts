@@ -4,7 +4,6 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-// Função para gerar código aleatório (ex: SKP-9A2B)
 function gerarCodigoUnico() {
   const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let resultado = '';
@@ -14,45 +13,41 @@ function gerarCodigoUnico() {
   return `SKP-${resultado}`;
 }
 
-export async function processarPagamento(itensCarrinho: any[]) {
+// 1. Adicionamos o parametro usuarioId aqui
+export async function processarPagamento(itensCarrinho: any[], usuarioId: string) {
   try {
     const fichasCriadas = []
 
-    // 1. Varrer cada item do carrinho
     for (const item of itensCarrinho) {
-      
-      // Quantidade de vezes que o item foi adicionado
       for (let i = 0; i < item.quantidade; i++) {
+        
+        // Dados comuns
+        const dadosBase = {
+            codigo: gerarCodigoUnico(),
+            status: 'disponivel',
+            evento: 'Festa Universitária',
+            dataCompra: new Date(),
+            usuarioId: usuarioId // <--- 2. Salvamos o dono aqui
+        }
 
-        // LÓGICA DE COMBO vs PRODUTO NORMAL
-        // Se for combo, precisamos criar várias fichas (ex: 3)
         if (item.isCombo && item.comboQtd) {
-          
-          // Loop interno para criar as fichas do combo
           for (let c = 0; c < item.comboQtd; c++) {
             const novaFicha = await prisma.ficha.create({
               data: {
-                codigo: gerarCodigoUnico(),
-                nomeProduto: item.comboItemName, // Ex: "Corote" (e não "Combo Corote")
+                ...dadosBase,
+                codigo: gerarCodigoUnico(), // Gera outro código pro combo
+                nomeProduto: item.comboItemName,
                 imagemUrl: item.comboItemImage || item.imagem,
-                status: 'disponivel',
-                evento: 'Festa Universitária', // Pode vir dinâmico depois
-                dataCompra: new Date()
               }
             })
             fichasCriadas.push(novaFicha)
           }
-
         } else {
-          // PRODUTO INDIVIDUAL (Água, Cerveja Avulsa)
           const novaFicha = await prisma.ficha.create({
             data: {
-              codigo: gerarCodigoUnico(),
+              ...dadosBase,
               nomeProduto: item.nome,
               imagemUrl: item.imagem,
-              status: 'disponivel',
-              evento: 'Festa Universitária',
-              dataCompra: new Date()
             }
           })
           fichasCriadas.push(novaFicha)
@@ -60,7 +55,6 @@ export async function processarPagamento(itensCarrinho: any[]) {
       }
     }
 
-    // Retorna sucesso e a lista de códigos gerados (opcional)
     return { sucesso: true, totalFichas: fichasCriadas.length }
 
   } catch (erro) {

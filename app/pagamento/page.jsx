@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Poppins } from 'next/font/google';
-import { processarPagamento } from "@/app/actions/checkout"; // <--- 1. IMPORTANTE: Importamos o Backend
+import { processarPagamento } from "@/app/actions/checkout"; 
 import { 
   Copy, 
   CreditCard, 
@@ -11,15 +11,14 @@ import {
   Smartphone, 
   User, 
   Mail, 
-  MapPin, 
-  Calendar, 
   ChevronLeft, 
   Ticket, 
   CheckCircle2, 
   AlertCircle,
   ShoppingBag,
-  Lock,
-  Loader2 // <--- 2. Ícone de carregamento
+  Loader2,
+  MapPin,
+  Calendar
 } from "lucide-react";
 
 const poppins = Poppins({
@@ -43,7 +42,7 @@ export default function PagamentoPage() {
   const [mensagemErro, setMensagemErro] = useState(""); 
   
   // Estado de Carregamento (Loading)
-  const [processando, setProcessando] = useState(false); // <--- 3. Novo estado
+  const [processando, setProcessando] = useState(false);
 
   const PIX_CODE = "00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-4266141740005204000053039865802BR5913Skipow Eventos6008Sao Paulo62070503***6304E2CA";
 
@@ -65,7 +64,19 @@ export default function PagamentoPage() {
   const total = itens.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
   const totalFormatado = total.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 
-  // --- FUNÇÃO DE MÁSCARA DE TELEFONE ---
+  // --- HELPER: IDENTIDADE DO DISPOSITIVO ---
+  // Gera ou recupera um ID único para este navegador para garantir segurança
+  const getUserId = () => {
+    if (typeof window === "undefined") return null;
+    let id = localStorage.getItem("skipow_user_id");
+    if (!id) {
+        id = crypto.randomUUID(); // Gera ID único
+        localStorage.setItem("skipow_user_id", id);
+    }
+    return id;
+  }
+
+  // --- MÁSCARA DE TELEFONE ---
   const handleTelefoneChange = (e) => {
     let value = e.target.value;
     value = value.replace(/\D/g, "");
@@ -86,7 +97,7 @@ export default function PagamentoPage() {
     setTimeout(() => setCopiado(false), 2000);
   };
 
-  // --- 4. LÓGICA DE PAGAMENTO CONECTADA AO BACKEND ---
+  // --- LÓGICA DE PAGAMENTO ---
   const handlePagar = async () => {
     // Validações Visuais
     const numerosApenas = telefone.replace(/\D/g, "");
@@ -103,20 +114,20 @@ export default function PagamentoPage() {
       return;
     }
 
-    // Inicia o processo de loading
     setProcessando(true);
 
     try {
-        // A. Chama o Backend para criar as fichas no banco
-        // Passamos 'itens' que já está no state
-        const resultado = await processarPagamento(itens);
+        // 1. Pega o ID único do usuário (Segurança)
+        const usuarioId = getUserId();
+
+        // 2. Chama o Backend passando os itens E o ID do usuário
+        const resultado = await processarPagamento(itens, usuarioId);
 
         if (resultado.sucesso) {
-            // B. Se deu certo no banco, limpa o carrinho local
+            // 3. Limpeza e Redirecionamento
             if (typeof window !== "undefined") {
                 localStorage.removeItem("skipow_carrinho");
                 
-                // Salva dados do user para próxima vez
                 localStorage.setItem("skipow_user_data", JSON.stringify({ 
                     nome: nome, 
                     email: email, 
@@ -124,13 +135,9 @@ export default function PagamentoPage() {
                     logado: true 
                 }));
             }
-
-            // C. Redireciona para a tela de conclusão (ou direto para /fichas)
-            // Vou manter sua rota original, mas você pode mudar para router.push("/fichas") se quiser
             router.push("/pagamento/concluido"); 
             
         } else {
-            // Se o backend retornou erro
             setMensagemErro("Erro ao processar pedido");
             dispararErro();
             setProcessando(false);

@@ -4,11 +4,13 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-// --- FUNÇÃO 1: Buscar TODAS as fichas (Usada na página /fichas) ---
-export async function buscarMinhasFichas() {
+// 1. Recebemos o usuarioId aqui
+export async function buscarMinhasFichas(usuarioId: string) {
   try {
-    // Busca todas as fichas ordenadas pela data de compra (mais novas primeiro)
     const fichas = await prisma.ficha.findMany({
+      where: {
+        usuarioId: usuarioId // <--- 2. FILTRO MÁGICO (Só traz as dele)
+      },
       orderBy: {
         dataCompra: 'desc'
       }
@@ -21,10 +23,10 @@ export async function buscarMinhasFichas() {
   }
 }
 
-// --- FUNÇÃO 2: Buscar UMA ficha específica (Usada na página /fichas/[id]) ---
 export async function buscarFichaUnica(codigoOuId: string) {
+  // A busca única pode continuar global, pois o código SKP é difícil de adivinhar
+  // Mas idealmente também filtraria pelo usuário se fosse um sistema bancário
   try {
-    // Tenta buscar pelo código (SKP-XXXX) ou pelo ID interno
     const ficha = await prisma.ficha.findFirst({
       where: {
         OR: [
@@ -35,10 +37,8 @@ export async function buscarFichaUnica(codigoOuId: string) {
     })
 
     if (!ficha) return { sucesso: false }
-
     return { sucesso: true, dados: ficha }
   } catch (error) {
-    console.error("Erro ao buscar ficha única:", error)
     return { sucesso: false }
   }
 }

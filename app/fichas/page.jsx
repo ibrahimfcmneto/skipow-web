@@ -4,26 +4,37 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { buscarMinhasFichas } from "@/app/actions/fichas"; // <--- Importamos a busca do banco
+import { buscarMinhasFichas } from "@/app/actions/fichas"; 
 
 export default function FichasPage() {
   const router = useRouter();
   const [fichas, setFichas] = useState([]);
   const [filtroAtivo, setFiltroAtivo] = useState("Disponíveis"); 
-  const [carregando, setCarregando] = useState(true); // Estado de loading
+  const [carregando, setCarregando] = useState(true); 
 
   useEffect(() => {
     async function carregarDados() {
-      // 1. Busca do Banco de Dados
-      const resultado = await buscarMinhasFichas();
+      // 1. SEGURANÇA: Recuperar o ID do usuário deste navegador
+      // Esse ID foi gerado na hora do pagamento
+      const meuId = localStorage.getItem("skipow_user_id");
+
+      // Se não tiver ID gravado, o usuário é novo/anônimo e não tem fichas
+      if (!meuId) {
+          setFichas([]);
+          setCarregando(false);
+          return;
+      }
+
+      // 2. Busca do Banco de Dados (Passando o ID para filtrar)
+      const resultado = await buscarMinhasFichas(meuId);
       
       if (resultado.sucesso) {
-        // 2. Adapta os nomes do Banco (nomeProduto) para o seu Layout (nome)
+        // 3. Adapta os dados do Banco para o Layout
         const fichasFormatadas = resultado.dados.map(f => ({
           id: f.id,
-          codigo: f.codigo,        // Importante para o QR Code
-          nome: f.nomeProduto,     // Banco: nomeProduto -> Layout: nome
-          imagem: f.imagemUrl,     // Banco: imagemUrl -> Layout: imagem
+          codigo: f.codigo,        
+          nome: f.nomeProduto,     
+          imagem: f.imagemUrl,     
           evento: f.evento,
           status: f.status,
           dataCompra: f.dataCompra
@@ -145,8 +156,6 @@ export default function FichasPage() {
           {!carregando && fichasFiltradas.map((ficha) => (
             <Link
               key={ficha.id}
-              // Linkamos para o código da ficha (ex: /fichas/SKP-1234)
-              // Você vai precisar criar essa página dinâmica depois para mostrar o QR code grande
               href={`/fichas/${ficha.codigo}`} 
               className="block bg-white rounded-[26px] shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 transition-transform duration-300 hover:scale-[1.02]"
             >

@@ -10,12 +10,14 @@ datasource db {
 }
 
 model Ficha {
-  id          String   @id @default(uuid()) // ID único interno
-  codigo      String   @unique              // Código legível (ex: SKP-0001)
+  id          String   @id @default(cuid())
+  codigo      String   @unique
   nomeProduto String
   imagemUrl   String?
-  evento      String
-  status      String   @default("disponivel") // disponivel, usada
+  evento      String?
+  status      String   @default("disponivel")
   dataCompra  DateTime @default(now())
   dataUso     DateTime?
+  
+  usuarioId   String   // <--- ADICIONE ESSA LINHA (Dono da ficha)
 }
