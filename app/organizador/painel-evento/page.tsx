@@ -9,7 +9,8 @@ import {
   User, 
   Menu, 
   Copy,
-  MoreHorizontal
+  MoreHorizontal,
+  Search // <--- Adicionei o ícone de busca
 } from "lucide-react";
 import { 
   BarChart, 
@@ -23,7 +24,6 @@ import {
   LabelList
 } from 'recharts';
 
-// Usando pesos de fonte mais refinados para evitar o visual "bruto"
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
@@ -53,20 +53,16 @@ export default function PainelEventoPage() {
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
-    // Feedback sutil seria ideal aqui (Haptic Feedback se fosse nativo)
     alert(`Copiado!`); 
   };
 
   return (
     <main className={`min-h-screen bg-[#F2F2F7] pb-32 ${poppins.className} antialiased selection:bg-green-100 selection:text-green-900`}>
       
-      {/* --- HEADER --- 
-          Glassmorphism real com borda quase invisível 
-      */}
+      {/* --- HEADER --- */}
       <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-black/[0.03] transition-all">
         <div className="max-w-md mx-auto px-5 py-3 flex items-center justify-between">
             
-            {/* Botão Voltar "Apple Style": Circular, Sombra Difusa suave */}
             <button 
               onClick={() => router.back()} 
               className="bg-white w-10 h-10 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-gray-50 flex items-center justify-center text-[#1D1D1F] hover:scale-105 active:scale-95 transition-all duration-300"
@@ -74,7 +70,6 @@ export default function PainelEventoPage() {
               <ChevronLeft size={22} className="relative -ml-0.5" strokeWidth={2.5} />
             </button>
             
-            {/* LOGO */}
             <div className="relative w-24 h-6 opacity-90">
                 <Image 
                   src="/logo_skipow_oficial_sem_fundo-removebg-preview.png"
@@ -101,7 +96,6 @@ export default function PainelEventoPage() {
           className="object-cover"
           priority
         />
-        {/* Gradiente cinemático para garantir leitura dos elementos superiores se necessário */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20"></div>
       </div>
 
@@ -120,7 +114,6 @@ export default function PainelEventoPage() {
                   </h1>
               </div>
               
-              {/* Badge Pulsante */}
               <div className="bg-[#F0FDF4] pl-2 pr-3 py-1.5 rounded-full border border-green-100 flex items-center gap-2 shadow-sm">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -130,8 +123,8 @@ export default function PainelEventoPage() {
               </div>
            </div>
 
-           {/* Botões de Ação (Haptics Visuals) */}
-           <div className="grid grid-cols-2 gap-3">
+           {/* Botões de Ação Principais */}
+           <div className="grid grid-cols-2 gap-3 mb-3">
               <button className="bg-[#40BB43] text-white font-semibold py-4 rounded-2xl text-sm shadow-[0_8px_20px_-6px_rgba(64,187,67,0.4)] hover:shadow-lg active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-2">
                 Pausar vendas
               </button>
@@ -139,9 +132,19 @@ export default function PainelEventoPage() {
                 Encerrar evento
               </button>
            </div>
+
+           {/* --- NOVO BOTÃO: BUSCAR FICHAS --- */}
+           <button 
+             onClick={() => router.push('/organizador/resgate')}
+             className="w-full bg-gray-50 border border-gray-100 text-[#1D1D1F] font-semibold py-4 rounded-2xl text-sm hover:bg-gray-100 active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-2"
+           >
+             <Search size={18} className="text-gray-500" />
+             Buscar Fichas
+           </button>
+
         </div>
 
-        {/* --- LISTA DE CÓDIGOS (Estilo iOS Settings) --- */}
+        {/* --- LISTA DE CÓDIGOS --- */}
         <div className="bg-white rounded-[24px] overflow-hidden shadow-sm ring-1 ring-black/[0.04] mb-4">
           
           {/* Item 1 */}
@@ -174,7 +177,7 @@ export default function PainelEventoPage() {
             Gerar novo PIN do bar
         </button>
 
-        {/* --- KPI CARDS (Visual Limpo) --- */}
+        {/* --- KPI CARDS --- */}
         <div className="space-y-3 mb-10">
            
            {/* Card Destaque */}
@@ -192,7 +195,7 @@ export default function PainelEventoPage() {
            </div>
         </div>
 
-        {/* --- GRÁFICOS (Minimalismo Apple Health) --- */}
+        {/* --- GRÁFICOS --- */}
         
         {/* Gráfico 1 */}
         <div className="bg-white p-6 rounded-[28px] shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-gray-100/50 mb-4">
@@ -238,7 +241,6 @@ export default function PainelEventoPage() {
               <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dadosHorario} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
-                      {/* CORREÇÃO AQUI: Removido marginTop: 10, mantido dy={10} */}
                       <XAxis dataKey="hora" axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 11}} dy={10} />
                       <YAxis hide />
                       <Tooltip cursor={{fill: '#F3F4F6', radius: 6}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 8px 20px rgba(0,0,0,0.1)', fontSize: '12px'}} />
@@ -255,7 +257,6 @@ export default function PainelEventoPage() {
   );
 }
 
-// Componente Reutilizável para os Cards de KPI Menores
 function MetricRow({ label, value }: { label: string, value: string }) {
     return (
         <div className="bg-[#2E8B30] rounded-2xl py-4 px-6 text-center text-white shadow-lg relative overflow-hidden flex items-center justify-between">
