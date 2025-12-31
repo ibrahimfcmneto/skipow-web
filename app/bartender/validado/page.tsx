@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Poppins } from 'next/font/google';
 import { Check } from "lucide-react";
 
@@ -10,48 +10,55 @@ const poppins = Poppins({
   subsets: ['latin'],
 });
 
-export default function ValidadoPage() {
+// Criamos um componente interno para lidar com a busca de dados
+function ConteudoValidado() {
   const router = useRouter();
-  const [horaAtual, setHoraAtual] = useState("");
+  const searchParams = useSearchParams();
+  
+  // 1. Pega os dados da URL (enviados pelo scanner)
+  const produto = searchParams.get('produto') || "Produto Desconhecido";
+  const horaURL = searchParams.get('hora'); // Pega a hora exata da validação
 
-  // Função para voltar ao scanner 'ler-qr'
+  const [horaExibida, setHoraExibida] = useState("");
+
   const handleProximo = () => {
-    // ATENÇÃO: Ajustei para o caminho que você pediu.
-    // Se a página "ler-qr" estiver na raiz, use apenas "/ler-qr"
     router.replace("/bartender/ler-qr"); 
   };
 
   useEffect(() => {
-    // 1. Define a hora atual para mostrar na tela
-    const now = new Date();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    setHoraAtual(`${hours}:${minutes}`);
+    // Se veio hora na URL usa ela, senão pega a hora de agora
+    if (horaURL) {
+      setHoraExibida(horaURL);
+    } else {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      setHoraExibida(`${hours}:${minutes}`);
+    }
 
-    // 2. Timer automático: espera 1.5s e volta para a câmera sozinho
+    // Timer automático: espera 1.5s e volta
     const timer = setTimeout(() => {
       handleProximo();
     }, 1500);
 
-    // Limpa o timer se o componente desmontar (previne erros)
     return () => clearTimeout(timer);
-  }, []);
+  }, [horaURL]); // Executa quando carregar
 
   return (
-    <main 
+    <div 
       onClick={handleProximo}
       className={`min-h-screen bg-[#40BB43] flex flex-col items-center justify-center relative cursor-pointer ${poppins.className}`}
     >
       
-      {/* Barra de progresso visual (mostra quanto tempo falta para voltar) */}
+      {/* Barra de progresso visual */}
       <div className="absolute top-0 left-0 h-2 bg-white/30 w-full animate-[shrink_1.5s_linear_forwards]" style={{ animationDuration: '1500ms' }} />
 
       {/* Conteúdo Centralizado */}
-      <div className="flex flex-col items-center animate-in zoom-in duration-300">
+      <div className="flex flex-col items-center animate-in zoom-in duration-300 px-4">
         
         {/* Ícone Check Gigante */}
         <div className="mb-6">
-            <Check size={140} strokeWidth={3} className="text-white" />
+            <Check size={140} strokeWidth={3} className="text-white drop-shadow-md" />
         </div>
 
         {/* Texto VÁLIDO */}
@@ -59,18 +66,15 @@ export default function ValidadoPage() {
           VÁLIDO!
         </h1>
 
-        {/* Nome do Produto */}
-        <h2 className="text-white text-[42px] font-medium tracking-tight mb-20 text-center leading-tight">
-          Nome Produto
+        {/* Nome do Produto (DINÂMICO AGORA) */}
+        <h2 className="text-white text-[42px] font-medium tracking-tight mb-20 text-center leading-tight break-words max-w-md">
+          {produto}
         </h2>
 
         {/* Detalhes (Fundo Inferior) */}
-        <div className="text-center space-y-1">
+        <div className="text-center space-y-1 bg-white/10 p-4 rounded-xl backdrop-blur-sm">
             <p className="text-[#1D1D1F] text-[18px] font-medium">
-                Código: SKP-82A1
-            </p>
-            <p className="text-[#1D1D1F] text-[18px] font-medium">
-                Horário validado: {horaAtual}
+               Horário validado: {horaExibida}
             </p>
         </div>
 
@@ -89,6 +93,15 @@ export default function ValidadoPage() {
         }
       `}</style>
 
-    </main>
+    </div>
   );
+}
+
+// Exportação Principal com Suspense (Obrigatório para usar useSearchParams)
+export default function ValidadoPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#40BB43] flex items-center justify-center text-white text-2xl font-bold">CARREGANDO...</div>}>
+      <ConteudoValidado />
+    </Suspense>
+  )
 }
