@@ -1,49 +1,49 @@
 'use server'
 
-import { prisma } from "@/lib/prisma" // <--- Agora importamos do arquivo certo!
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export async function validarFicha(codigo: string) {
-  console.log(`🔍 Verificando ficha: ${codigo}`)
-
   try {
     // 1. Busca a ficha no banco
     const ficha = await prisma.ficha.findUnique({
       where: { codigo: codigo }
     })
 
-    // 2. Se não existir
+    // 2. Verificações de Segurança
     if (!ficha) {
-      return { sucesso: false, erro: "Ficha não encontrada no sistema." }
+      return { sucesso: false, erro: "Ficha não encontrada" }
     }
 
-    // 3. Se já foi usada
-    if (ficha.status === 'usada') {
-      const horaUso = ficha.dataUso ? new Date(ficha.dataUso).toLocaleTimeString('pt-BR') : 'Desconhecida'
+    if (ficha.status !== 'disponivel') {
+      // Se já foi usada, retorna erro e NÃO valida de novo
       return { 
         sucesso: false, 
-        erro: "Ficha JÁ UTILIZADA!", 
-        detalhe: `Usada às ${horaUso}` 
+        erro: "Ficha já utilizada", 
+        detalhe: `Usada em: ${ficha.dataUso?.toLocaleString('pt-BR')}`
       }
     }
 
-    // 4. Se estiver tudo certo: QUEIMA A FICHA (Marca como usada)
-    await prisma.ficha.update({
+    // 3. O PULO DO GATO: Atualizar o status para 'usada'
+    // É AQUI que a mágica acontece. Se não tiver isso, a ficha nunca gasta.
+    const fichaAtualizada = await prisma.ficha.update({
       where: { id: ficha.id },
-      data: { 
-        status: 'usada',
-        dataUso: new Date()
+      data: {
+        status: 'usada',       // Marca como usada
+        dataUso: new Date()    // Grava a hora exata que o bartender bipou
       }
     })
 
-    // Retorna sucesso
-    return { 
-      sucesso: true, 
-      produto: ficha.nomeProduto,
-      hora: new Date().toLocaleTimeString('pt-BR')
+    // 4. Retorna sucesso para o Bartender ver a tela verde
+    return {
+      sucesso: true,
+      produto: fichaAtualizada.nomeProduto,
+      hora: fichaAtualizada.dataUso?.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     }
 
-  } catch (error) {
-    console.error("Erro no banco:", error)
-    return { sucesso: false, erro: "Erro interno no servidor." }
+  } catch (erro) {
+    console.error(erro)
+    return { sucesso: false, erro: "Erro no sistema" }
   }
 }

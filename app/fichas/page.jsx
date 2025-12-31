@@ -1,23 +1,40 @@
-// app/fichas/page.jsx
 "use client";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { buscarMinhasFichas } from "@/app/actions/fichas"; // <--- Importamos a busca do banco
 
 export default function FichasPage() {
   const router = useRouter();
   const [fichas, setFichas] = useState([]);
-  const [filtroAtivo, setFiltroAtivo] = useState("Disponíveis"); // Estado para as abas
+  const [filtroAtivo, setFiltroAtivo] = useState("Disponíveis"); 
+  const [carregando, setCarregando] = useState(true); // Estado de loading
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const data = localStorage.getItem("skipow_fichas");
-      if (data) {
-        setFichas(JSON.parse(data));
+    async function carregarDados() {
+      // 1. Busca do Banco de Dados
+      const resultado = await buscarMinhasFichas();
+      
+      if (resultado.sucesso) {
+        // 2. Adapta os nomes do Banco (nomeProduto) para o seu Layout (nome)
+        const fichasFormatadas = resultado.dados.map(f => ({
+          id: f.id,
+          codigo: f.codigo,        // Importante para o QR Code
+          nome: f.nomeProduto,     // Banco: nomeProduto -> Layout: nome
+          imagem: f.imagemUrl,     // Banco: imagemUrl -> Layout: imagem
+          evento: f.evento,
+          status: f.status,
+          dataCompra: f.dataCompra
+        }));
+        
+        setFichas(fichasFormatadas);
       }
+      setCarregando(false);
     }
+
+    carregarDados();
   }, []);
 
   // Lógica de filtragem
@@ -32,53 +49,28 @@ export default function FichasPage() {
     <main className="min-h-screen bg-white flex justify-center">
       <div className="w-full max-w-md px-5 pb-10">
         
-        {/* HEADER (Novo: Logo esq + Avatar/Carrinho dir) */}
+        {/* HEADER */}
         <header className="pt-6 mb-8 flex items-center justify-between">
-            {/* logo (Agora clicável, levando ao cardápio) */}
             <Link href="/cardapio">
               <Image
                 src="/logo-skipow.png"
                 alt="Skipow"
                 width={120}
                 height={36}
-                // Adicionei 'cursor-pointer' para aparecer a "mãozinha" ao passar o mouse
                 className="cursor-pointer" 
               />
             </Link>
 
-            {/* Avatar e Carrinho */}
             <div className="flex items-center gap-4">
-              
-              {/* 1. Avatar */}
               <div className="relative w-9 h-9">
-                <Image
-                  src="/avatar.png" 
-                  alt="Avatar"
-                  fill 
-                  className="rounded-full object-cover" 
-                />
+                <Image src="/avatar.png" alt="Avatar" fill className="rounded-full object-cover" />
               </div>
 
-              {/* 2. Botão do Carrinho */}
               <button 
                 onClick={() => router.push("/carrinho")} 
                 className="relative text-gray-900 hover:text-[#40BB43] transition-colors"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="9" cy="21" r="1"></circle>
-                  <circle cx="20" cy="21" r="1"></circle>
-                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
               </button>
             </div>
         </header>
@@ -112,8 +104,8 @@ export default function FichasPage() {
                   transition-all duration-300 ease-in-out
                   ${
                     ativo
-                      ? "bg-white text-gray-900 shadow-[0_2px_4px_rgba(0,0,0,0.08)] transform scale-[1.02]" // Efeito "Cartão Flutuante"
-                      : "text-gray-500 hover:text-gray-700 bg-transparent" // Efeito "Inativo"
+                      ? "bg-white text-gray-900 shadow-[0_2px_4px_rgba(0,0,0,0.08)] transform scale-[1.02]"
+                      : "text-gray-500 hover:text-gray-700 bg-transparent"
                   }
                 `}
               >
@@ -125,7 +117,16 @@ export default function FichasPage() {
 
         {/* LISTA DE FICHAS */}
         <div className="space-y-4">
-          {fichasFiltradas.length === 0 && (
+          
+          {/* Loading State */}
+          {carregando && (
+             <div className="text-center py-10">
+                <div className="w-8 h-8 border-4 border-[#40BB43] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                <p className="text-gray-400 text-sm">Carregando carteira...</p>
+             </div>
+          )}
+
+          {!carregando && fichasFiltradas.length === 0 && (
             <div className="text-center py-8">
               <p className="text-gray-500">
                 Nenhuma ficha encontrada nesta categoria.
@@ -141,22 +142,25 @@ export default function FichasPage() {
             </div>
           )}
 
-          {fichasFiltradas.map((ficha) => (
+          {!carregando && fichasFiltradas.map((ficha) => (
             <Link
               key={ficha.id}
-              href={`/fichas/${ficha.id}`}
+              // Linkamos para o código da ficha (ex: /fichas/SKP-1234)
+              // Você vai precisar criar essa página dinâmica depois para mostrar o QR code grande
+              href={`/fichas/${ficha.codigo}`} 
               className="block bg-white rounded-[26px] shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 transition-transform duration-300 hover:scale-[1.02]"
             >
               {/* imagem da bebida */}
-              <div className="w-16 h-16 flex items-center justify-center bg-gray-50 rounded-2xl">
-                {ficha.imagem && (
+              <div className="w-16 h-16 flex items-center justify-center bg-gray-50 rounded-2xl relative overflow-hidden">
+                {ficha.imagem ? (
                   <Image
                     src={ficha.imagem}
                     alt={ficha.nome}
-                    width={60}
-                    height={60}
-                    className="object-contain max-h-14"
+                    fill
+                    className="object-contain p-2"
                   />
+                ) : (
+                  <span className="text-2xl">🍸</span>
                 )}
               </div>
 
@@ -165,7 +169,7 @@ export default function FichasPage() {
                   {ficha.nome}
                 </p>
                 <p className="text-[11px] text-gray-500 truncate mt-0.5">
-                  Válido para: {ficha.evento}
+                  Cod: {ficha.codigo} • {ficha.evento}
                 </p>
                 <p className="text-[12px] text-gray-400 mt-1">
                   Toque para ver o QR code

@@ -1,9 +1,9 @@
-// app/pagamento/page.jsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Poppins } from 'next/font/google';
+import { processarPagamento } from "@/app/actions/checkout"; // <--- 1. IMPORTANTE: Importamos o Backend
 import { 
   Copy, 
   CreditCard, 
@@ -18,7 +18,8 @@ import {
   CheckCircle2, 
   AlertCircle,
   ShoppingBag,
-  Lock // Adicionado o Lock para a microcopy
+  Lock,
+  Loader2 // <--- 2. Ícone de carregamento
 } from "lucide-react";
 
 const poppins = Poppins({
@@ -40,6 +41,9 @@ export default function PagamentoPage() {
   // Estado para controlar a notificação de erro
   const [erroTelefone, setErroTelefone] = useState(false);
   const [mensagemErro, setMensagemErro] = useState(""); 
+  
+  // Estado de Carregamento (Loading)
+  const [processando, setProcessando] = useState(false); // <--- 3. Novo estado
 
   const PIX_CODE = "00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-4266141740005204000053039865802BR5913Skipow Eventos6008Sao Paulo62070503***6304E2CA";
 
@@ -64,24 +68,15 @@ export default function PagamentoPage() {
   // --- FUNÇÃO DE MÁSCARA DE TELEFONE ---
   const handleTelefoneChange = (e) => {
     let value = e.target.value;
-
-    // 1. Remove tudo que não é número
     value = value.replace(/\D/g, "");
-
-    // 2. Limita a 11 dígitos
     value = value.slice(0, 11);
-
-    // 3. Aplica a formatação (00) 00000-0000
     if (value.length > 2) {
       value = value.replace(/^(\d{2})(\d)/g, "($1) $2");
     }
     if (value.length > 7) {
       value = value.replace(/(\d{5})(\d{4})$/, "$1-$2");
     }
-
     setTelefone(value);
-    
-    // Se o usuário começar a corrigir, removemos o erro
     if (erroTelefone) setErroTelefone(false);
   };
 
@@ -91,7 +86,9 @@ export default function PagamentoPage() {
     setTimeout(() => setCopiado(false), 2000);
   };
 
-  const handlePagar = () => {
+  // --- 4. LÓGICA DE PAGAMENTO CONECTADA AO BACKEND ---
+  const handlePagar = async () => {
+    // Validações Visuais
     const numerosApenas = telefone.replace(/\D/g, "");
 
     if (!numerosApenas) {
@@ -106,16 +103,45 @@ export default function PagamentoPage() {
       return;
     }
 
-    if (typeof window !== "undefined") {
-        localStorage.setItem("skipow_user_data", JSON.stringify({ 
-            nome: nome, 
-            email: email, 
-            telefone,
-            logado: true 
-        }));
-    }
+    // Inicia o processo de loading
+    setProcessando(true);
 
-    router.push("/pagamento/concluido");
+    try {
+        // A. Chama o Backend para criar as fichas no banco
+        // Passamos 'itens' que já está no state
+        const resultado = await processarPagamento(itens);
+
+        if (resultado.sucesso) {
+            // B. Se deu certo no banco, limpa o carrinho local
+            if (typeof window !== "undefined") {
+                localStorage.removeItem("skipow_carrinho");
+                
+                // Salva dados do user para próxima vez
+                localStorage.setItem("skipow_user_data", JSON.stringify({ 
+                    nome: nome, 
+                    email: email, 
+                    telefone,
+                    logado: true 
+                }));
+            }
+
+            // C. Redireciona para a tela de conclusão (ou direto para /fichas)
+            // Vou manter sua rota original, mas você pode mudar para router.push("/fichas") se quiser
+            router.push("/pagamento/concluido"); 
+            
+        } else {
+            // Se o backend retornou erro
+            setMensagemErro("Erro ao processar pedido");
+            dispararErro();
+            setProcessando(false);
+        }
+
+    } catch (error) {
+        console.error(error);
+        setMensagemErro("Erro de conexão");
+        dispararErro();
+        setProcessando(false);
+    }
   };
 
   function dispararErro() {
@@ -127,7 +153,6 @@ export default function PagamentoPage() {
   return (
     <main className={`min-h-screen bg-[#F2F2F7] flex justify-center ${poppins.className} text-[#1D1D1F]`}>
       <div className="w-full max-w-md pb-48 relative"> 
-        {/* Aumentei o padding-bottom (pb-48) para o footer não cobrir o conteúdo */}
         
         {/* --- NOTIFICAÇÃO DE ERRO --- */}
         {erroTelefone && (
@@ -139,7 +164,7 @@ export default function PagamentoPage() {
                     <div>
                         <h3 className="text-[14px] font-bold leading-tight">{mensagemErro}</h3>
                         <p className="text-[12px] text-gray-300 leading-tight mt-0.5 font-medium">
-                            Verifique o número e tente novamente.
+                            Verifique e tente novamente.
                         </p>
                     </div>
                 </div>
@@ -240,6 +265,7 @@ export default function PagamentoPage() {
                                     value={telefone}
                                     onChange={handleTelefoneChange} 
                                     maxLength={15} 
+                                    disabled={processando}
                                     className="w-full text-[17px] font-medium text-[#1D1D1F] placeholder:text-gray-300 outline-none bg-transparent"
                                 />
                             </div>
@@ -256,6 +282,7 @@ export default function PagamentoPage() {
                                 placeholder="Nome completo (Opcional)" 
                                 value={nome}
                                 onChange={(e) => setNome(e.target.value)}
+                                disabled={processando}
                                 className="w-full text-[15px] font-medium text-[#1D1D1F] placeholder:text-gray-300 outline-none bg-transparent"
                             />
                         </div>
@@ -267,6 +294,7 @@ export default function PagamentoPage() {
                                 placeholder="E-mail para recibo (Opcional)" 
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
+                                disabled={processando}
                                 className="w-full text-[15px] font-medium text-[#1D1D1F] placeholder:text-gray-300 outline-none bg-transparent"
                             />
                         </div>
@@ -282,7 +310,6 @@ export default function PagamentoPage() {
                     <h3 className="text-[13px] font-semibold text-gray-500 uppercase tracking-wide">Pagamento</h3>
                 </div>
 
-                {/* Microcopy Alinhada (Adicionei o px-1) */}
                 <div className="flex items-center justify-start gap-1.5 mt-3 opacity-80 px-1">
                     <p className="text-[13px] text-gray-500 font-medium text-left">
                         Após o pagamento, suas fichas serão liberadas automaticamente.
@@ -293,6 +320,7 @@ export default function PagamentoPage() {
                     {/* PIX */}
                     <button 
                         onClick={() => setMetodo("pix")}
+                        disabled={processando}
                         className={`w-full text-left relative rounded-[20px] p-4 border transition-all duration-200 ${
                             metodo === 'pix' 
                             ? 'bg-white border-[#40BB43] shadow-[0_0_0_1px_#40BB43]' 
@@ -337,6 +365,7 @@ export default function PagamentoPage() {
                     {/* CARTÃO */}
                     <button 
                         onClick={() => setMetodo("cartao")}
+                        disabled={processando}
                         className={`w-full text-left relative rounded-[20px] p-4 border transition-all duration-200 ${
                             metodo === 'cartao' 
                             ? 'bg-white border-[#40BB43] shadow-[0_0_0_1px_#40BB43]' 
@@ -394,14 +423,22 @@ export default function PagamentoPage() {
 
         </div>
 
-        {/* FOOTER FIXO */}
+        {/* FOOTER FIXO ATUALIZADO */}
         <div className="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-xl border-t border-gray-200 p-5 z-40">
             <div className="w-full max-w-md mx-auto">
                 <button 
                     onClick={handlePagar}
-                    className="w-full h-14 bg-[#40BB43] hover:bg-[#36a539] text-white font-bold rounded-2xl text-[17px] shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-[0.98]"
+                    disabled={processando || itens.length === 0}
+                    className="w-full h-14 bg-[#40BB43] hover:bg-[#36a539] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-2xl text-[17px] shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-[0.98]"
                 >
-                    <span>Pagar R$ {totalFormatado}</span>
+                    {processando ? (
+                        <>
+                            <Loader2 className="animate-spin" size={24} />
+                            <span>Processando...</span>
+                        </>
+                    ) : (
+                        <span>Pagar R$ {totalFormatado}</span>
+                    )}
                 </button>
             </div>
         </div>

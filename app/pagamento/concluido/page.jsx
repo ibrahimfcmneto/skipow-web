@@ -1,4 +1,3 @@
-// app/pagamento/concluido/page.jsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -13,79 +12,23 @@ const poppins = Poppins({
 
 export default function ConcluidoPage() {
   const router = useRouter();
-  const [status, setStatus] = useState("processando"); // 'processando' ou 'aprovado'
+  const [status, setStatus] = useState("processando"); // Visual apenas
 
   useEffect(() => {
-    // 1. Simula tempo de processamento (2 segundos)
+    // A compra JÁ FOI processada no Backend na tela anterior.
+    // Esse timer serve apenas para dar um feedback visual de "Confirmação final"
     const timer = setTimeout(() => {
-      processarCompra();
-    }, 2000);
+      setStatus("aprovado");
+    }, 1500); // 1.5 segundos de charme
 
     return () => clearTimeout(timer);
   }, []);
-
-  const processarCompra = () => {
-    if (typeof window === "undefined") return;
-
-    // --- LÓGICA DE GERAÇÃO DE FICHAS (Movida para cá) ---
-    const carrinhoJson = localStorage.getItem("skipow_carrinho");
-    if (!carrinhoJson) {
-        setStatus("aprovado"); // Se não tiver carrinho (refresh), só mostra aprovado
-        return; 
-    }
-    
-    const itens = JSON.parse(carrinhoJson);
-    const existentesJSON = localStorage.getItem("skipow_fichas");
-    const fichasExistentes = existentesJSON ? JSON.parse(existentesJSON) : [];
-
-    // Calcular próximo ID
-    let ultimoNumero = 0;
-    fichasExistentes.forEach((ficha) => {
-      const match = String(ficha.id).match(/SKP-(\d+)/);
-      if (match) {
-        const n = parseInt(match[1], 10);
-        if (n > ultimoNumero) ultimoNumero = n;
-      }
-    });
-
-    const novasFichas = [];
-
-    // Gerar fichas
-    itens.forEach((item) => {
-      const multiplicador = item.isCombo ? (item.comboQtd || 1) : 1;
-      const totalFichas = item.quantidade * multiplicador;
-      const nomeFinal = item.isCombo ? item.comboItemName : item.nome;
-      const imagemFinal = item.isCombo ? item.comboItemImage : item.imagem;
-
-      for (let i = 0; i < totalFichas; i++) {
-        ultimoNumero++;
-        const codigoUnico = `SKP-${String(ultimoNumero).padStart(4, "0")}`;
-        
-        novasFichas.push({
-          id: codigoUnico,
-          codigo: codigoUnico,
-          nome: nomeFinal,
-          imagem: imagemFinal,
-          evento: "De Férias com a FACECA",
-          status: "disponivel",
-          dataCompra: new Date().toISOString()
-        });
-      }
-    });
-
-    // Salvar e Limpar
-    localStorage.setItem("skipow_fichas", JSON.stringify([...fichasExistentes, ...novasFichas]));
-    localStorage.removeItem("skipow_carrinho");
-
-    // Mudar estado para aprovado
-    setStatus("aprovado");
-  };
 
   return (
     <main className={`min-h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden ${poppins.className}`}>
       
       {status === "processando" ? (
-        // --- TELA 1: PROCESSANDO ---
+        // --- TELA 1: FINALIZANDO ---
         <div className="flex flex-col items-center animate-in fade-in duration-500">
             {/* Logo */}
             <div className="mb-12 relative w-40 h-10">
@@ -98,11 +41,11 @@ export default function ConcluidoPage() {
                 <div className="w-20 h-20 border-4 border-[#40BB43] rounded-full border-t-transparent absolute top-0 left-0 animate-spin"></div>
             </div>
 
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Processando...</h2>
-            <p className="text-gray-500 text-sm">Validando seu pagamento</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Validando...</h2>
+            <p className="text-gray-500 text-sm">Confirmando transação</p>
         </div>
       ) : (
-        // --- TELA 2: APROVADO (Igual ao seu print) ---
+        // --- TELA 2: APROVADO ---
         <div className="w-full max-w-md px-8 flex flex-col items-center animate-in zoom-in-95 duration-500 z-10">
             
             {/* Logo */}
@@ -132,14 +75,14 @@ export default function ConcluidoPage() {
         </div>
       )}
 
-      {/* RODAPÉ ONDA VERDE (Sempre visível nesta tela) */}
+      {/* RODAPÉ ONDA VERDE */}
       <div className="fixed bottom-0 left-0 w-full h-32 pointer-events-none z-0">
           <svg className="w-full h-full" viewBox="0 0 500 150" preserveAspectRatio="none">
               <path d="M0.00,49.98 Q250.00,150.00 500.00,49.98 L500.00,150.00 L0.00,150.00 Z" className="fill-[#40BB43]"></path>
           </svg>
           <div className="absolute bottom-2 w-full text-center">
              <p className="text-[10px] text-white/40 mix-blend-plus-lighter">
-                © Skipow — Plataforma de consumo
+               © Skipow — Plataforma de consumo
              </p>
           </div>
       </div>
