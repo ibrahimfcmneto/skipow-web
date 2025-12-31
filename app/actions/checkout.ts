@@ -9,31 +9,31 @@ export async function processarPagamento(itens: any[], usuarioId: string, telefo
     if (!usuarioId) return { sucesso: false, erro: "ID do usuário não fornecido" }
 
     const telefoneFinal = telefone ? telefone.replace(/\D/g, "") : null;
-
-    // Array para guardar todas as promessas de criação
     const criacoes = [];
 
     for (const item of itens) {
-      // Se for um COMBO que deve gerar várias fichas, o frontend deve mandar 'quantidade' correta
-      // Mas se o produto se chama "Combo 3x", e quantidade é 1, ele gera 1 ficha com nome "Combo 3x"
+      // 1. Define quantas fichas gerar por unidade comprada
+      // Se tiver 'fichasPorItem' usa ele, senão é 1
+      const multiplicador = item.fichasPorItem || 1; 
       
-      // SE VOCÊ QUER QUE GERE FICHAS INDIVIDUAIS PARA COMBOS:
-      // Você pode tentar detectar pelo nome (arriscado) ou garantir que o carrinho mande a quantidade certa.
-      // Ex: No carrinho, ao adicionar "Combo 3x", adicione o produto "Cerveja" com quantidade 3.
-      
-      // Assumindo que 'item.quantidade' é o número de fichas que você quer:
-      for (let i = 0; i < item.quantidade; i++) {
+      // 2. Define o nome que vai sair na ficha
+      // Se tiver 'nomeIndividual' (ex: Corote), usa ele. Se não, usa o nome do produto (ex: Cerveja)
+      const nomeNaFicha = item.nomeIndividual || item.nome;
+
+      // Calcula o total real de fichas (Ex: 1 Combo * 3 unidades = 3 Fichas)
+      const totalFichasParaGerar = item.quantidade * multiplicador;
+
+      for (let i = 0; i < totalFichasParaGerar; i++) {
         
-        // Gera um código único garantido
-        const codigoAleatorio = Math.random().toString(36).substring(2, 10).toUpperCase();
-        const timestamp = Date.now().toString().slice(-4); // Adiciona tempo para evitar duplicidade
+        const codigoAleatorio = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const timestamp = Date.now().toString().slice(-4);
         const codigoFinal = `SKP-${codigoAleatorio}${timestamp}`;
 
         criacoes.push(
           prisma.ficha.create({
             data: {
               codigo: codigoFinal,
-              nomeProduto: item.nome, // Vai sair "Cerveja" (se for o nome do item)
+              nomeProduto: nomeNaFicha, // <--- AQUI VAI O NOME "COROTE"
               evento: 'Skipow Sunset',
               status: 'disponivel',
               imagemUrl: item.imagem || null,
@@ -45,7 +45,6 @@ export async function processarPagamento(itens: any[], usuarioId: string, telefo
       }
     }
 
-    // Executa todas as criações em paralelo para ser mais rápido
     await prisma.$transaction(criacoes);
 
     return { sucesso: true }
