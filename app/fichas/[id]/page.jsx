@@ -55,7 +55,7 @@ export default function FichaPage() {
             clearInterval(intervalRef.current);
         }
       }
-    }, 5000); 
+    }, 1000); 
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
