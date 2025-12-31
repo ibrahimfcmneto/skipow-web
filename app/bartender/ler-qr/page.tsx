@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import jsQR from "jsqr"
-import { ArrowLeft, ScanLine } from "lucide-react" // Ícones bonitos
+import { ArrowLeft, ScanLine } from "lucide-react"
 import { validarFicha } from "@/app/actions/bartender"
 
 export default function LerQRPage() {
@@ -50,7 +50,6 @@ export default function LerQRPage() {
 
           if (code && code.data) {
             scanningLock.current = true 
-            // Feedback tátil (vibração) se o celular suportar
             if (navigator.vibrate) navigator.vibrate(50);
             
             console.log("Código capturado:", code.data)
@@ -109,39 +108,43 @@ export default function LerQRPage() {
         
         {/* TOPO: Botão Voltar e Título */}
         <div className="pt-12 px-6 pb-4 flex items-center w-full bg-gradient-to-b from-black/80 to-transparent">
+          
+          {/* BOTÃO DE VOLTAR - ATUALIZADO */}
           <button 
-            onClick={() => router.push('/bartender')} 
-            className="p-2 rounded-full bg-white/10 backdrop-blur-md border border-white/10 active:scale-95 transition-all mr-4"
+            onClick={() => router.push('/bartender/scanner')} 
+            className="p-3 rounded-full bg-black/60 backdrop-blur-md border border-white/30 active:scale-95 transition-all mr-5 hover:bg-black/80 shadow-lg"
           >
-            <ArrowLeft className="text-white w-6 h-6" />
+            {/* Seta branca e mais grossa */}
+            <ArrowLeft className="text-white w-7 h-7" strokeWidth={2.5} />
           </button>
+
           <div className="flex flex-col">
-            <h1 className="text-white font-bold text-lg leading-none">Scanner</h1>
-            <p className="text-white/60 text-xs font-medium">Ler Ficha Skipow</p>
+            <h1 className="text-white font-bold text-lg leading-none drop-shadow-md">Scanner</h1>
+            <p className="text-white/80 text-xs font-medium drop-shadow-md">Ler Ficha Skipow</p>
           </div>
         </div>
 
         {/* CENTRO: Área de Foco */}
         <div className="flex-1 flex flex-col items-center justify-center -mt-10">
             
-            {/* Quadrado de Leitura (Aumentado para w-80 / 320px) */}
+            {/* Quadrado de Leitura */}
             <div className="relative w-80 h-80 rounded-[30px] shadow-[0_0_0_9999px_rgba(0,0,0,0.85)] flex items-center justify-center overflow-hidden">
                 
-                {/* Cantos Verdes Neon (Mais finos e elegantes) */}
+                {/* Cantos Verdes Neon */}
                 <div className="absolute top-0 left-0 w-12 h-12 border-l-[3px] border-t-[3px] border-[#40BB43] rounded-tl-[20px] m-1"></div>
                 <div className="absolute top-0 right-0 w-12 h-12 border-r-[3px] border-t-[3px] border-[#40BB43] rounded-tr-[20px] m-1"></div>
                 <div className="absolute bottom-0 left-0 w-12 h-12 border-l-[3px] border-b-[3px] border-[#40BB43] rounded-bl-[20px] m-1"></div>
                 <div className="absolute bottom-0 right-0 w-12 h-12 border-r-[3px] border-b-[3px] border-[#40BB43] rounded-br-[20px] m-1"></div>
 
-                {/* Laser de Escaneamento (Efeito Gradiente) */}
+                {/* Laser de Escaneamento */}
                 <div className="absolute w-full h-[2px] bg-gradient-to-r from-transparent via-[#40BB43] to-transparent animate-[scan_2s_ease-in-out_infinite] shadow-[0_0_15px_#40BB43]"></div>
 
-                {/* Ícone Central Sutis (Opcional, dá um ar tech) */}
+                {/* Ícone Central Sutil */}
                 <ScanLine className="text-white/20 w-16 h-16 animate-pulse" strokeWidth={1} />
             </div>
 
-            {/* Texto de Status (Logo abaixo do quadrado) */}
-            <div className="mt-8 px-5 py-2.5 bg-neutral-900/80 backdrop-blur-md rounded-full border border-white/5">
+            {/* Texto de Status */}
+            <div className="mt-8 px-5 py-2.5 bg-neutral-900/80 backdrop-blur-md rounded-full border border-white/5 shadow-lg">
                 <p className="text-[#40BB43] font-mono text-sm font-semibold tracking-wide flex items-center gap-2">
                    <span className="w-2 h-2 rounded-full bg-[#40BB43] animate-pulse"></span>
                    {status}
@@ -150,7 +153,7 @@ export default function LerQRPage() {
 
         </div>
 
-        {/* RODAPÉ: Dica */}
+        {/* RODAPÉ */}
         <div className="pb-8 text-center px-10">
             <p className="text-white/40 text-xs">
                 Mantenha a câmera estável e garanta boa iluminação.
@@ -159,7 +162,6 @@ export default function LerQRPage() {
       
       </div>
 
-      {/* Animação CSS do Laser */}
       <style jsx>{`
         @keyframes scan {
           0% { top: 10%; opacity: 0; }
