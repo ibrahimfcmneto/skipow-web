@@ -11,7 +11,7 @@ export default function LerQRPage() {
   const [bloqueado, setBloqueado] = useState(false) 
   const [status, setStatus] = useState("Posicione o código no centro")
 
-  // --- CORREÇÃO AQUI: Adicionamos o tipo ': any' ---
+  // Mantivemos a correção do tipo ': any[]' aqui
   const handleScan = async (codigos: any[]) => {
     if (!codigos || codigos.length === 0 || bloqueado) return
     
@@ -27,7 +27,7 @@ export default function LerQRPage() {
 
       if (resultado.sucesso) {
         if (navigator.vibrate) navigator.vibrate([50, 50, 50]); 
-        // Conversão de string para URL segura
+        
         const params = new URLSearchParams();
         params.set("produto", resultado.produto || "");
         params.set("hora", resultado.hora || "");
@@ -59,8 +59,8 @@ export default function LerQRPage() {
             onScan={handleScan}
             scanDelay={500}
             allowMultiple={true}
+            // --- CORREÇÃO AQUI: Removemos 'audio: false' ---
             components={{ 
-                audio: false, 
                 finder: false 
             }}
             styles={{
@@ -70,7 +70,7 @@ export default function LerQRPage() {
          />
       </div>
 
-      {/* INTERFACE */}
+      {/* INTERFACE (Sua UI original) */}
       <div className="relative z-10 w-full h-full flex flex-col pointer-events-none">
         
         {/* TOPO */}
