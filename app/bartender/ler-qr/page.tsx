@@ -1,120 +1,78 @@
 'use client'
 
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
-import jsQR from "jsqr"
+import { Scanner } from "@yudiel/react-qr-scanner" // O motor novo e rápido
 import { ArrowLeft, ScanLine } from "lucide-react"
 import { validarFicha } from "@/app/actions/bartender"
 
 export default function LerQRPage() {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const router = useRouter()
-  
-  const scanningLock = useRef(false) 
+  const [bloqueado, setBloqueado] = useState(false) // Trava para não ler 2x
   const [status, setStatus] = useState("Posicione o código no centro")
 
-  useEffect(() => {
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    if (!video || !canvas) return
+  // Função que roda quando detecta um QR Code
+  const handleScan = async (codigos) => {
+    if (!codigos || codigos.length === 0 || bloqueado) return
+    
+    const codigoLido = codigos[0].rawValue
+    setBloqueado(true) // Trava leitura
+    
+    // Feedback tátil
+    if (navigator.vibrate) navigator.vibrate(50)
+    
+    setStatus("Processando...")
 
-    const ctx = canvas.getContext("2d", { willReadFrequently: true })
-    if (!ctx) return
+    try {
+      const resultado = await validarFicha(codigoLido)
 
-    // 1. Iniciar Câmera
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-      .then((stream) => {
-        video.srcObject = stream
-        video.setAttribute("playsinline", "true") 
-        video.play()
-        requestAnimationFrame(tick)
-      })
-      .catch((err) => console.error("Erro na câmera:", err))
-
-    // 2. Loop de Leitura
-    function tick() {
-      if (!video || !canvas || !ctx) return
-      
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.height = video.videoHeight
-        canvas.width = video.videoWidth
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-        
-        if (!scanningLock.current) {
-          const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "dontInvert",
-          })
-
-          if (code && code.data) {
-            scanningLock.current = true 
-            if (navigator.vibrate) navigator.vibrate(50);
-            
-            console.log("Código capturado:", code.data)
-            verificarNoBanco(code.data)
-          }
-        }
+      if (resultado.sucesso) {
+        if (navigator.vibrate) navigator.vibrate([50, 50, 50]); // Vibração de sucesso
+        router.push(`/bartender/validado?produto=${resultado.produto}&hora=${resultado.hora}`)
+      } else {
+        if (navigator.vibrate) navigator.vibrate(200); // Vibração de erro
+        const motivo = encodeURIComponent(resultado.erro || "Erro desconhecido")
+        const detalhe = encodeURIComponent("Não entregue a bebida")
+        router.push(`/bartender/erro?motivo=${motivo}&detalhe=${detalhe}`)
       }
-      requestAnimationFrame(tick)
+    } catch (error) {
+      console.error(error)
+      alert("Erro de conexão.")
+      setStatus("Posicione o código no centro")
+      setBloqueado(false) // Destrava para tentar de novo
     }
-
-    // 3. Conversa com o Servidor
-    async function verificarNoBanco(codigoLido: string) {
-      setStatus("Processando...") 
-
-      try {
-        const resultado = await validarFicha(codigoLido)
-
-        if (resultado.sucesso) {
-          router.push(`/bartender/validado?produto=${resultado.produto}&hora=${resultado.hora}`)
-        } else {
-          const motivo = encodeURIComponent(resultado.erro || "Erro desconhecido")
-          const detalhe = encodeURIComponent("Não entregue a bebida")
-          router.push(`/bartender/erro?motivo=${motivo}&detalhe=${detalhe}`)
-        }
-      } catch (error) {
-        console.error(error)
-        alert("Erro de conexão.")
-        scanningLock.current = false 
-        setStatus("Posicione o código no centro")
-      }
-    }
-
-    return () => {
-      scanningLock.current = true 
-      if (video.srcObject) {
-        const stream = video.srcObject as MediaStream
-        stream.getTracks().forEach(track => track.stop())
-      }
-    }
-  }, [router]) 
+  }
 
   return (
     <div className="relative h-screen w-screen bg-black overflow-hidden flex flex-col">
       
-      {/* VÍDEO DE FUNDO */}
-      <video 
-        ref={videoRef} 
-        className="absolute inset-0 w-full h-full object-cover z-0" 
-        muted 
-        playsInline 
-      />
-      <canvas ref={canvasRef} className="hidden" /> 
+      {/* --- O NOVO MOTOR DE LEITURA (FICA NO FUNDO) --- */}
+      <div className="absolute inset-0 w-full h-full z-0">
+         <Scanner 
+            onScan={handleScan}
+            scanDelay={500} // O SEGREDO: Lê a cada 500ms (super leve)
+            allowMultiple={true}
+            components={{ 
+                audio: false, // Desliga som nativo
+                finder: false // Desliga a borda vermelha nativa (vamos usar a sua verde)
+            }}
+            styles={{
+                container: { width: '100%', height: '100%' },
+                video: { objectFit: 'cover' }
+            }}
+         />
+      </div>
 
-      {/* INTERFACE (Z-INDEX SUPERIOR) */}
-      <div className="relative z-10 w-full h-full flex flex-col">
+      {/* --- A SUA INTERFACE (FICA POR CIMA / Z-INDEX 10) --- */}
+      <div className="relative z-10 w-full h-full flex flex-col pointer-events-none">
+        {/* pointer-events-none deixa clicar no scanner se precisar, mas habilitamos pointer-events-auto nos botões */}
         
         {/* TOPO: Botão Voltar e Título */}
-        <div className="pt-12 px-6 pb-4 flex items-center w-full bg-gradient-to-b from-black/80 to-transparent">
-          
-          {/* BOTÃO DE VOLTAR - ATUALIZADO */}
+        <div className="pt-12 px-6 pb-4 flex items-center w-full bg-gradient-to-b from-black/80 to-transparent pointer-events-auto">
           <button 
             onClick={() => router.push('/bartender/scanner')} 
-            className="p-3 rounded-full bg-black/60 backdrop-blur-md border border-white/30 active:scale-95 transition-all mr-5 hover:bg-black/80 shadow-lg"
+            className="p-3 rounded-full bg-black/60 backdrop-blur-md border border-white/30 active:scale-95 transition-all mr-5 hover:bg-black/80 shadow-lg cursor-pointer"
           >
-            {/* Seta branca e mais grossa */}
             <ArrowLeft className="text-white w-7 h-7" strokeWidth={2.5} />
           </button>
 
@@ -127,7 +85,7 @@ export default function LerQRPage() {
         {/* CENTRO: Área de Foco */}
         <div className="flex-1 flex flex-col items-center justify-center -mt-10">
             
-            {/* Quadrado de Leitura */}
+            {/* Quadrado de Leitura (Seu design original) */}
             <div className="relative w-80 h-80 rounded-[30px] shadow-[0_0_0_9999px_rgba(0,0,0,0.85)] flex items-center justify-center overflow-hidden">
                 
                 {/* Cantos Verdes Neon */}
@@ -140,7 +98,9 @@ export default function LerQRPage() {
                 <div className="absolute w-full h-[2px] bg-gradient-to-r from-transparent via-[#40BB43] to-transparent animate-[scan_2s_ease-in-out_infinite] shadow-[0_0_15px_#40BB43]"></div>
 
                 {/* Ícone Central Sutil */}
-                <ScanLine className="text-white/20 w-16 h-16 animate-pulse" strokeWidth={1} />
+                <div className="opacity-50">
+                    <ScanLine className="text-white/20 w-16 h-16 animate-pulse" strokeWidth={1} />
+                </div>
             </div>
 
             {/* Texto de Status */}
