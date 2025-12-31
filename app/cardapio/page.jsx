@@ -1,4 +1,3 @@
-// app/cardapio/page.jsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,16 +6,16 @@ import { useRouter } from "next/navigation";
 
 // --- LISTA DE PRODUTOS ---
 const PRODUTOS = [
-  // 1. PROMOÇÕES
+  // 1. PROMOÇÕES (COMBOS CORRIGIDOS)
   { 
     nome: "Combo 3 Corotes", 
     preco: 15, 
     imagem: "/combo_3_corotes.png", 
     categorias: ["Promoções"],
     isCombo: true,
-    comboQtd: 3,                
-    comboItemName: "Corote",    
-    comboItemImage: "/corote.png"
+    // --- INSTRUÇÕES PARA O BACKEND ---
+    fichasPorItem: 3,         // Gera 3 fichas
+    nomeIndividual: "Corote"  // Nome que sai na ficha
   },
   { 
     nome: "Combo 3 Cervejas", 
@@ -24,9 +23,8 @@ const PRODUTOS = [
     imagem: "/combo_3_cervejas.png", 
     categorias: ["Promoções"],
     isCombo: true,
-    comboQtd: 3,
-    comboItemName: "Cerveja Lata",
-    comboItemImage: "/cerveja.png"
+    fichasPorItem: 3,
+    nomeIndividual: "Cerveja Lata"
   },
   { 
     nome: "Combo 3 Beats", 
@@ -34,9 +32,8 @@ const PRODUTOS = [
     imagem: "/combo_3_skol_beats.png", 
     categorias: ["Promoções"],
     isCombo: true,
-    comboQtd: 3,
-    comboItemName: "Skol Beats",
-    comboItemImage: "/skol_beats.png"
+    fichasPorItem: 3,
+    nomeIndividual: "Skol Beats"
   },
 
   // 2. ÁGUA
@@ -65,32 +62,26 @@ export default function CardapioPage() {
   const [quantidade, setQuantidade] = useState(1);
   const [cartCount, setCartCount] = useState(0);
   
-  // NOVO: Estado para armazenar o nome do evento
   const [nomeEvento, setNomeEvento] = useState("");
 
-  // Carrega dados iniciais (Carrinho e Nome do Evento)
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // 1. Recuperar carrinho
       const carrinhoAtual = JSON.parse(localStorage.getItem("skipow_carrinho") || "[]");
       const count = carrinhoAtual.reduce((acc, item) => acc + item.quantidade, 0);
       setCartCount(count);
 
-      // 2. Recuperar nome do evento (Lógica: tenta pegar do localStorage, senão usa um padrão)
-      // Quando fizermos a página de seleção, salvaremos com a chave "skipow_nome_evento"
       const eventoSalvo = localStorage.getItem("skipow_nome_evento");
       setNomeEvento(eventoSalvo || "Festa Universitária"); 
     }
   }, []);
 
-  // Filtro
   const produtosFiltrados = PRODUTOS.filter((produto) => {
     const buscaOk = produto.nome.toLowerCase().includes(textoBusca.toLowerCase());
     const categoriaOk = abaAtiva === "Todos" || produto.categorias.includes(abaAtiva);
     return buscaOk && categoriaOk;
   });
 
-  // --- SALVAR NO CARRINHO ---
+  // --- SALVAR NO CARRINHO (ATUALIZADO) ---
   function salvarCarrinhoENavegar() {
     if (!produtoSelecionado) return;
 
@@ -99,10 +90,10 @@ export default function CardapioPage() {
       preco: produtoSelecionado.preco,
       quantidade: quantidade,
       imagem: produtoSelecionado.imagem,
-      isCombo: produtoSelecionado.isCombo || false,
-      comboQtd: produtoSelecionado.comboQtd || 1,
-      comboItemName: produtoSelecionado.comboItemName || "",
-      comboItemImage: produtoSelecionado.comboItemImage || ""
+      
+      // Passa as instruções especiais para o carrinho
+      fichasPorItem: produtoSelecionado.fichasPorItem || 1,
+      nomeIndividual: produtoSelecionado.nomeIndividual || produtoSelecionado.nome
     };
 
     if (typeof window !== "undefined") {
@@ -127,7 +118,6 @@ export default function CardapioPage() {
     router.push("/carrinho");
   }
 
-  // Funções Auxiliares
   function abrirModal(produto) {
     setProdutoSelecionado(produto);
     setQuantidade(1);
@@ -188,13 +178,13 @@ export default function CardapioPage() {
           </div>
         </header>
 
-        {/* --- NOVO: IDENTIFICAÇÃO DO EVENTO --- */}
+        {/* IDENTIFICAÇÃO DO EVENTO */}
         <div className="flex justify-center mb-5">
            <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 px-4 py-1.5 rounded-full shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-[#40BB43] animate-pulse"></span>
-              <p className="text-sm text-gray-600 font-medium">
-                Você está em: <span className="text-gray-900 font-bold">{nomeEvento}</span>
-              </p>
+             <span className="w-2 h-2 rounded-full bg-[#40BB43] animate-pulse"></span>
+             <p className="text-sm text-gray-600 font-medium">
+               Você está em: <span className="text-gray-900 font-bold">{nomeEvento}</span>
+             </p>
            </div>
         </div>
 
