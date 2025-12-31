@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import jsQR from "jsqr"
+import { ArrowLeft } from "lucide-react" // Ícone da seta
 import { validarFicha } from "@/app/actions/bartender"
 
 export default function LerQRPage() {
@@ -12,7 +13,7 @@ export default function LerQRPage() {
   
   // Usamos Ref para o bloqueio porque é INSTANTÂNEO (State tem delay)
   const scanningLock = useRef(false) 
-  const [status, setStatus] = useState("Procurando fichas...")
+  const [status, setStatus] = useState("Aponte para o QR Code")
 
   useEffect(() => {
     const video = videoRef.current
@@ -26,7 +27,6 @@ export default function LerQRPage() {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
       .then((stream) => {
         video.srcObject = stream
-        // O atributo playsInline é crucial para iOS
         video.setAttribute("playsinline", "true") 
         video.play()
         requestAnimationFrame(tick)
@@ -35,7 +35,6 @@ export default function LerQRPage() {
 
     // 2. O Loop Infinito (Tick)
     function tick() {
-      // Se o componente morreu ou se JÁ ESTAMOS PROCESSANDO, para tudo.
       if (!video || !canvas || !ctx) return
       
       if (video.readyState === video.HAVE_ENOUGH_DATA) {
@@ -45,84 +44,121 @@ export default function LerQRPage() {
 
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
         
-        // Só tenta ler se NÃO estivermos travados processando uma ficha
         if (!scanningLock.current) {
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
             inversionAttempts: "dontInvert",
           })
 
           if (code && code.data) {
-            // --- AQUI ESTA A CORREÇÃO ---
-            // Trava IMEDIATAMENTE para não ler o próximo frame
             scanningLock.current = true 
-            
             console.log("Código capturado:", code.data)
             verificarNoBanco(code.data)
           }
         }
       }
-      
-      // Continua o loop
       requestAnimationFrame(tick)
     }
 
     // 3. Função que conversa com o Servidor
     async function verificarNoBanco(codigoLido: string) {
-      setStatus("Verificando...") // Feedback visual simples
+      setStatus("Verificando...") 
 
       try {
         const resultado = await validarFicha(codigoLido)
 
         if (resultado.sucesso) {
-          // SUCESSO: Redireciona
-          // (Não destravamos o lock aqui, pois vamos sair da página)
           router.push(`/bartender/validado?produto=${resultado.produto}&hora=${resultado.hora}`)
         } else {
-          // ERRO: Mostra alerta e DESTRAVA depois
-          alert(`❌ NEGADO: ${resultado.erro}\n${resultado.detalhe || ''}`)
-          
-          // Espera um pouco antes de deixar ler de novo (para não virar metralhadora de alerta)
-          setStatus("Aguardando...")
-          setTimeout(() => {
-            setStatus("Procurando fichas...")
-            scanningLock.current = false // <--- LIBERA A TRAVA
-          }, 2000)
+          const motivo = encodeURIComponent(resultado.erro || "Erro desconhecido")
+          const detalhe = encodeURIComponent("Não entregue a bebida")
+          router.push(`/bartender/erro?motivo=${motivo}&detalhe=${detalhe}`)
         }
       } catch (error) {
         console.error(error)
         alert("Erro de conexão. Tente novamente.")
-        scanningLock.current = false // Libera em caso de erro crítico
-        setStatus("Procurando fichas...")
+        scanningLock.current = false 
+        setStatus("Aponte para o QR Code")
       }
     }
 
-    // Cleanup: Para a câmera se sair da página
     return () => {
-      scanningLock.current = true // Garante que pare de ler
+      scanningLock.current = true 
       if (video.srcObject) {
         const stream = video.srcObject as MediaStream
         stream.getTracks().forEach(track => track.stop())
       }
     }
-
   }, [router]) 
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-black text-white">
-      <h1 className="text-xl font-bold mb-4">Aponte para o QR Code</h1>
+    <div className="relative h-screen w-screen bg-black overflow-hidden flex flex-col items-center justify-center">
       
-      <div className="relative w-full max-w-sm aspect-square overflow-hidden rounded-xl border-4 border-emerald-500 shadow-2xl shadow-emerald-500/20">
-        <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
-        {/* O canvas fica escondido, ele é o cérebro visual, o vídeo é o que você vê */}
-        <canvas ref={canvasRef} className="hidden" /> 
+      {/* CAMADA 1: O Vídeo de Fundo (Ocupa tudo) */}
+      <video 
+        ref={videoRef} 
+        className="absolute inset-0 w-full h-full object-cover z-0" 
+        muted 
+        playsInline 
+      />
+      <canvas ref={canvasRef} className="hidden" /> 
+
+      {/* CAMADA 2: Interface e Máscara Escura */}
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
         
-        {/* Mira Central (Cosmético) */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-48 h-48 border-2 border-white/50 rounded-lg"></div>
+        {/* Botão Voltar (Topo Esquerda) */}
+        <div className="absolute top-6 left-6 z-50">
+          <button 
+            onClick={() => router.push('/bartender')} // Ajuste a rota se necessário
+            className="bg-black/40 backdrop-blur-md p-3 rounded-xl border border-white/10 active:scale-95 transition-all"
+          >
+            <ArrowLeft className="text-white w-6 h-6" />
+          </button>
         </div>
+
+        {/* Texto Instrução */}
+        <p className="text-white font-medium text-lg mb-8 drop-shadow-md tracking-wide">
+            Escaneie a ficha
+        </p>
+
+        {/* ÁREA DE ESCANEAMENTO */}
+        {/* O boxShadow aqui cria a máscara escura ao redor do quadrado transparente */}
+        <div 
+            className="relative w-72 h-72 rounded-3xl shadow-[0_0_0_9999px_rgba(0,0,0,0.8)]"
+        >
+            {/* Cantos Verdes (Brackets) */}
+            
+            {/* Canto Superior Esquerdo */}
+            <div className="absolute top-0 left-0 w-10 h-10 border-l-[4px] border-t-[4px] border-[#40BB43] rounded-tl-xl -translate-x-1 -translate-y-1"></div>
+            
+            {/* Canto Superior Direito */}
+            <div className="absolute top-0 right-0 w-10 h-10 border-r-[4px] border-t-[4px] border-[#40BB43] rounded-tr-xl translate-x-1 -translate-y-1"></div>
+            
+            {/* Canto Inferior Esquerdo */}
+            <div className="absolute bottom-0 left-0 w-10 h-10 border-l-[4px] border-b-[4px] border-[#40BB43] rounded-bl-xl -translate-x-1 translate-y-1"></div>
+            
+            {/* Canto Inferior Direito */}
+            <div className="absolute bottom-0 right-0 w-10 h-10 border-r-[4px] border-b-[4px] border-[#40BB43] rounded-br-xl translate-x-1 translate-y-1"></div>
+
+            {/* Linha de Scanner (Animação opcional para dar vida) */}
+            <div className="absolute w-full h-[2px] bg-[#40BB43]/50 animate-[scan_2s_infinite] top-0 shadow-[0_0_10px_#40BB43]"></div>
+        </div>
+
+        {/* Status Text (Abaixo) */}
+        <div className="absolute bottom-20 px-6 py-2 bg-black/60 backdrop-blur-sm rounded-full">
+             <p className="text-emerald-400 font-mono text-sm animate-pulse">{status}</p>
+        </div>
+      
       </div>
 
-      <p className="mt-6 text-emerald-400 font-mono animate-pulse">{status}</p>
+      {/* Animação da linha do scanner */}
+      <style jsx>{`
+        @keyframes scan {
+          0% { top: 10%; opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { top: 90%; opacity: 0; }
+        }
+      `}</style>
     </div>
   )
 }

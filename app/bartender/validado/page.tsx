@@ -34,10 +34,10 @@ function ConteudoValidado() {
     });
     setHoraExibida(timeString);
 
-    // 2. TEMPO DE TELA: Aumentado para 2.5 segundos (2500ms)
+    // 2. TEMPO DE TELA: 3.5 segundos
     const timer = setTimeout(() => {
       handleProximo();
-    }, 2500);
+    }, 3500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -51,7 +51,7 @@ function ConteudoValidado() {
       {/* Barra de progresso visual (Ajustada para 2.5s) */}
       <div 
         className="absolute top-0 left-0 h-2 bg-white/30 w-full animate-[shrink_2.5s_linear_forwards]" 
-        style={{ animationDuration: '2500ms' }} 
+        style={{ animationDuration: '3500ms' }} 
       />
 
       {/* Conteúdo Centralizado */}
