@@ -25,12 +25,12 @@ const poppins = Poppins({
 export default function ResgatePage() {
   const router = useRouter();
   const [telefone, setTelefone] = useState("");
-  const [resultado, setResultado] = useState(null);
+  const [resultado, setResultado] = useState<any>(null); // Correção de tipo aqui também
   const [loading, setLoading] = useState(false);
   const [copiado, setCopiado] = useState(false);
 
-  // Formata o telefone enquanto digita
-  const handleTelefoneChange = (e) => {
+  // --- CORREÇÃO DO ERRO AQUI: Adicionado ': any' ---
+  const handleTelefoneChange = (e: any) => {
     let value = e.target.value.replace(/\D/g, "");
     if (value.length > 11) value = value.slice(0, 11);
     
@@ -41,7 +41,8 @@ export default function ResgatePage() {
     setTelefone(value);
   };
 
-  async function handleBuscar(e) {
+  // --- CORREÇÃO DO ERRO AQUI: Adicionado ': any' ---
+  async function handleBuscar(e: any) {
     e.preventDefault();
     if (telefone.length < 14) return;
 
