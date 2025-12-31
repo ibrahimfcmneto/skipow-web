@@ -9,28 +9,31 @@ async function main() {
   const ficha = await prisma.ficha.upsert({
     where: { codigo: 'SKP-TESTE-1' },
     
-    // --- MUDANÇA AQUI ---
-    // Se a ficha já existe, reseta o status para 'disponivel'
+    // Se a ficha já existe, apenas reseta o status para 'disponivel'
     update: {
       status: 'disponivel',
       dataUso: null
     },
-    // --------------------
 
+    // Se a ficha não existe, cria ela do zero
     create: {
       codigo: 'SKP-TESTE-1',
       nomeProduto: 'Corote',
       imagemUrl: '/corote.png',
       evento: 'De férias com a FACECA',
       status: 'disponivel',
-      dataCompra: new Date()
+      dataCompra: new Date(),
+      
+      // --- CORREÇÃO AQUI: ADICIONADO O DONO DA FICHA ---
+      usuarioId: 'admin-teste-seed' 
     }
   })
 
   console.log(`✅ Ficha criada/resetada com sucesso!`)
   console.log(`👉 Produto: ${ficha.nomeProduto}`)
-  console.log(`👉 Status agora: ${ficha.status}`) // Vai mostrar 'disponivel'
+  console.log(`👉 Status agora: ${ficha.status}`)
   console.log(`👉 Código para o QR Code: ${ficha.codigo}`)
+  console.log(`👉 Dono (Simulado): ${ficha.usuarioId}`)
 }
 
 main()
