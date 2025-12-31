@@ -5,10 +5,18 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Iniciando o seed...')
 
-  // Criar ficha de teste
+  // Criar ou Resetar ficha de teste
   const ficha = await prisma.ficha.upsert({
     where: { codigo: 'SKP-TESTE-1' },
-    update: {},
+    
+    // --- MUDANÇA AQUI ---
+    // Se a ficha já existe, reseta o status para 'disponivel'
+    update: {
+      status: 'disponivel',
+      dataUso: null
+    },
+    // --------------------
+
     create: {
       codigo: 'SKP-TESTE-1',
       nomeProduto: 'Corote',
@@ -19,8 +27,9 @@ async function main() {
     }
   })
 
-  console.log(`✅ Ficha criada com sucesso!`)
+  console.log(`✅ Ficha criada/resetada com sucesso!`)
   console.log(`👉 Produto: ${ficha.nomeProduto}`)
+  console.log(`👉 Status agora: ${ficha.status}`) // Vai mostrar 'disponivel'
   console.log(`👉 Código para o QR Code: ${ficha.codigo}`)
 }
 
