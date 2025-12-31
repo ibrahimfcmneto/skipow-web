@@ -18,6 +18,6 @@ model Ficha {
   status      String   @default("disponivel")
   dataCompra  DateTime @default(now())
   dataUso     DateTime?
-  
-  usuarioId   String   // <--- ADICIONE ESSA LINHA (Dono da ficha)
+  usuarioId   String   //(Dono da ficha)
+  telefoneCliente String?  // Para recuperar em caso de emergência
 }

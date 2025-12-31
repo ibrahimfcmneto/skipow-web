@@ -4,61 +4,38 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-function gerarCodigoUnico() {
-  const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let resultado = '';
-  for (let i = 0; i < 6; i++) {
-    resultado += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
-  }
-  return `SKP-${resultado}`;
-}
-
-// 1. Adicionamos o parametro usuarioId aqui
-export async function processarPagamento(itensCarrinho: any[], usuarioId: string) {
+// Agora aceitamos o telefone como terceiro item
+export async function processarPagamento(itens: any[], usuarioId: string, telefone: string) {
   try {
-    const fichasCriadas = []
+    if (!usuarioId) return { sucesso: false, erro: "ID do usuário não fornecido" }
 
-    for (const item of itensCarrinho) {
+    // Tratamento simples do telefone (para garantir que salvamos se vier undefined)
+    const telefoneFinal = telefone ? telefone.replace(/\D/g, "") : null;
+
+    for (const item of itens) {
       for (let i = 0; i < item.quantidade; i++) {
+        const codigoAleatorio = Math.random().toString(36).substring(2, 8).toUpperCase()
         
-        // Dados comuns
-        const dadosBase = {
-            codigo: gerarCodigoUnico(),
+        await prisma.ficha.create({
+          data: {
+            codigo: `SKP-${codigoAleatorio}`,
+            nomeProduto: item.nome,
+            evento: 'Skipow Sunset',
             status: 'disponivel',
-            evento: 'Festa Universitária',
-            dataCompra: new Date(),
-            usuarioId: usuarioId // <--- 2. Salvamos o dono aqui
-        }
-
-        if (item.isCombo && item.comboQtd) {
-          for (let c = 0; c < item.comboQtd; c++) {
-            const novaFicha = await prisma.ficha.create({
-              data: {
-                ...dadosBase,
-                codigo: gerarCodigoUnico(), // Gera outro código pro combo
-                nomeProduto: item.comboItemName,
-                imagemUrl: item.comboItemImage || item.imagem,
-              }
-            })
-            fichasCriadas.push(novaFicha)
+            imagemUrl: item.imagem || null,
+            usuarioId: usuarioId,
+            
+            // --- AQUI QUE ELE SALVA NO BANCO ---
+            telefoneCliente: telefoneFinal
           }
-        } else {
-          const novaFicha = await prisma.ficha.create({
-            data: {
-              ...dadosBase,
-              nomeProduto: item.nome,
-              imagemUrl: item.imagem,
-            }
-          })
-          fichasCriadas.push(novaFicha)
-        }
+        })
       }
     }
 
-    return { sucesso: true, totalFichas: fichasCriadas.length }
+    return { sucesso: true }
 
   } catch (erro) {
     console.error("Erro no checkout:", erro)
-    return { sucesso: false, erro: "Falha ao gerar fichas." }
+    return { sucesso: false, erro: "Falha ao processar pagamento" }
   }
 }

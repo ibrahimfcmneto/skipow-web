@@ -70,7 +70,7 @@ export default function PagamentoPage() {
     if (typeof window === "undefined") return null;
     let id = localStorage.getItem("skipow_user_id");
     if (!id) {
-        id = crypto.randomUUID(); // Gera ID único
+        id = crypto.randomUUID(); // Gera ID único se não existir
         localStorage.setItem("skipow_user_id", id);
     }
     return id;
@@ -117,17 +117,19 @@ export default function PagamentoPage() {
     setProcessando(true);
 
     try {
-        // 1. Pega o ID único do usuário (Segurança)
+        // 1. SEGURANÇA: Pega o ID único do usuário
         const usuarioId = getUserId();
 
         // 2. Chama o Backend passando os itens E o ID do usuário
-        const resultado = await processarPagamento(itens, usuarioId);
+        // IMPORTANTE: Agora passamos o usuarioId como segundo argumento e telefone como terceiro
+        const resultado = await processarPagamento(itens, usuarioId, telefone);
 
         if (resultado.sucesso) {
             // 3. Limpeza e Redirecionamento
             if (typeof window !== "undefined") {
                 localStorage.removeItem("skipow_carrinho");
                 
+                // Salva dados do usuário para preenchimento automático futuro
                 localStorage.setItem("skipow_user_data", JSON.stringify({ 
                     nome: nome, 
                     email: email, 

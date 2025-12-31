@@ -201,6 +201,36 @@ export default function FichasPage() {
             </Link>
           ))}
         </div>
+        
+        {/* RODAPÉ DE SEGURANÇA */}
+      <div className="mt-12 pt-6 border-t border-gray-100 text-center pb-8">
+        <p className="text-xs text-gray-400 mb-3">
+          Vai trocar de celular ou acabou a bateria? <br/>
+          Salve seu link de recuperação.
+        </p>
+        
+        <button
+          onClick={() => {
+            // Pega o ID atual
+            const meuId = localStorage.getItem("skipow_user_id");
+            if (!meuId) return alert("Erro: ID não encontrado");
+
+            // Cria o link mágico
+            const link = `${window.location.origin}/recuperar?uid=${meuId}`;
+
+            // Copia para a área de transferência
+            navigator.clipboard.writeText(link).then(() => {
+              alert("Link copiado! Mande para seu WhatsApp para garantir.");
+            });
+          }}
+          className="text-[#40BB43] text-sm font-bold underline decoration-dotted"
+        >
+          Copiar meu Link de Acesso
+        </button>
+      </div>
+
+      {/* ... fim do main ... */}
+
       </div>
     </main>
   );
