@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import Image from "next/image";
+import QRCode from "react-qr-code"; // <--- Biblioteca Local (Zero Dependência Externa)
 import { buscarFichaUnica } from "@/app/actions/fichas";
 import { Poppins } from 'next/font/google';
 
@@ -21,7 +21,7 @@ export default function FichaPage() {
   // Decodifica o ID da URL com segurança
   const idFicha = params?.id ? decodeURIComponent(Array.isArray(params.id) ? params.id[0] : params.id) : null;
   
-  // Ref para controlar o intervalo e limpar quando sair da tela
+  // Ref para controlar o intervalo
   const intervalRef = useRef(null);
 
   // 1. CARREGAMENTO INICIAL
@@ -41,33 +41,26 @@ export default function FichaPage() {
 
   // 2. POLLING (VERIFICAÇÃO EM TEMPO REAL)
   useEffect(() => {
-    // Se não tem ficha ou ela JÁ está usada, não precisa ficar verificando
     if (!ficha || ficha.status === 'usada') return;
 
-    // Cria o intervalo: Pergunta pro servidor a cada 3 segundos
+    // Aumentei para 5000ms (5s) para aliviar o servidor em caso de muita gente
     intervalRef.current = setInterval(async () => {
-      console.log("Verificando status..."); // Debug para você ver no console
+      // console.log("Verificando status..."); 
       const resultado = await buscarFichaUnica(idFicha);
       
       if (resultado.sucesso) {
-        // Se o status mudou para usada, atualiza o estado
         if (resultado.dados.status === 'usada') {
             setFicha(resultado.dados);
-            
-            // Opcional: Vibrar o celular quando validar
             if (navigator.vibrate) navigator.vibrate(200);
-            
-            // Para de verificar pois já gastou
             clearInterval(intervalRef.current);
         }
       }
-    }, 3000); // 3000ms = 3 segundos
+    }, 5000); 
 
-    // Limpeza: Se o usuário sair da página, para o intervalo
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [idFicha, ficha?.status]); // Recria o efeito se o status mudar
+  }, [idFicha, ficha?.status]); 
 
   if (carregando) {
     return (
@@ -93,13 +86,9 @@ export default function FichaPage() {
     );
   }
 
-  // URL do QR Code Dinâmico
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${ficha.codigo}&color=1d1d1f&bgcolor=ffffff`;
-
   return (
     <main className={`min-h-screen bg-black/80 backdrop-blur-md flex items-center justify-center px-5 ${poppins.className}`}>
       
-      {/* CARD DA FICHA */}
       <div className="w-full max-w-sm bg-white rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in duration-300">
         
         <button
@@ -112,7 +101,6 @@ export default function FichaPage() {
         {/* Cabeçalho do Card */}
         <div className="pt-8 pb-4 px-6 text-center">
              
-             {/* --- AQUI ESTÁ A MUDANÇA VISUAL (VERDE vs VERMELHO) --- */}
              <div className="flex justify-center mb-4 transition-all duration-500">
                 <span className={`px-4 py-1.5 rounded-full text-[12px] font-bold uppercase tracking-wide flex items-center gap-2 border ${
                     ficha.status === 'disponivel' 
@@ -141,24 +129,28 @@ export default function FichaPage() {
             </p>
         </div>
 
-        {/* Área do QR Code (Destaque) */}
+        {/* Área do QR Code (GERAÇÃO LOCAL) */}
         <div className={`mx-6 p-6 border-2 border-dashed rounded-[24px] mb-6 flex flex-col items-center transition-colors duration-500 ${
             ficha.status === 'disponivel' ? 'bg-white border-gray-200' : 'bg-gray-100 border-gray-300 opacity-60 grayscale'
         }`}>
             
-            <div className="relative w-56 h-56">
-                <Image
-                    src={qrCodeUrl}
-                    alt={`QR Code ${ficha.codigo}`}
-                    fill
-                    className="object-contain mix-blend-multiply"
-                    unoptimized
+            <div className="relative w-56 h-56 bg-white p-1 flex items-center justify-center">
+                {/* SUBSTITUIÇÃO: Usamos o componente QRCode local.
+                    Ele gera um SVG leve e nítido.
+                */}
+                <QRCode
+                    value={ficha.codigo}
+                    size={256}
+                    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                    viewBox={`0 0 256 256`}
+                    level="H" // H = High Error Correction (QR Code mais robusto)
+                    fgColor="#1D1D1F" // Cor escura padrão do app
                 />
                 
-                {/* Se estiver usada, coloca um carimbo visual por cima (opcional, mas fica legal) */}
+                {/* Carimbo de USADO */}
                 {ficha.status === 'usada' && (
                      <div className="absolute inset-0 flex items-center justify-center z-20">
-                        <div className="bg-red-600/90 text-white font-bold text-xl px-4 py-2 rounded-lg -rotate-12 border-2 border-white shadow-lg">
+                        <div className="bg-red-600/90 text-white font-bold text-xl px-4 py-2 rounded-lg -rotate-12 border-2 border-white shadow-lg backdrop-blur-sm">
                             USADO
                         </div>
                      </div>
