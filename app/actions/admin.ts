@@ -28,16 +28,16 @@ export async function buscarLinkPorTelefone(telefoneBusca: string) {
       where: { usuarioId: ficha.usuarioId }
     })
 
-    // --- CORREÇÃO DO LINK ---
-    // Em vez de pegar dinâmico, vamos definir manual para não cair na proteção da Vercel
-    
-    let baseUrl = 'http://localhost:3000'; // Padrão local
+    // --- CONFIGURAÇÃO DO LINK ---
+    let baseUrl = 'http://localhost:3000'; 
 
     if (process.env.NODE_ENV === 'production') {
-        // 🔴 ATENÇÃO: COLOQUE AQUI O SEU LINK FINAL DA VERCEL
-        // Exemplo: 'https://skipow-festa.vercel.app'
-        // Não coloque a barra '/' no final
-        baseUrl = 'https://skipow.vercel.app'; 
+        // 🔴🔴🔴 IMPORTANTE:
+        // TROQUE O LINK ABAIXO PELO LINK REAL DO SEU SITE QUE ESTÁ NO NAVEGADOR
+        // NÃO use 'skipow.vercel.app' se esse não for o seu.
+        // Exemplo: 'https://meu-evento-top.vercel.app'
+        
+        baseUrl = 'https://SEU-LINK-REAL-AQUI.vercel.app'; 
     }
 
     const linkMagico = `${baseUrl}/recuperar?uid=${ficha.usuarioId}`;
